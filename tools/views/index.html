@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PPS</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="ip-list">
+            <h2 id="heading">List of IPs</h2>
+            <div class="form-divider"></div>
+            <form id="ipForm"></form>
+        </div>
+        <div class="divider"></div>
+        <div class="folder-list">
+            <h2 id="heading">List of Folders</h2>
+            <div class="control-buttons">
+                <div class="btns">
+                    <div class="arrow" id="leftArrow">🔙</div>
+                    <button class="upload-button" id="database">Database</button>
+                </div>
+                <button class="upload-button" id="uploadButton">Upload</button>
+            </div>
+            <h2 id="local-path"></h2>
+            <div class="form-divider"></div>
+            <form class="folder-form"></form>
+            <div class="form-divider"></div>
+            <div class="sub-folder-form">
+                <div class="subfolder-list"></div>
+
+                <div class="subfile-form">
+                    <div class="subfile-list"></div>
+                </div>
+            </div>
+            <div class="subsub-folder-form">
+                <div class="subsubfolder-list"></div>
+                <div class="subsubfile-form">
+                    <div class="subsubfile-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const {
+            ipcRenderer
+        } = require('electron');
+        const path = require('path');
+        let selectedMainFolder = '';
+        let selectedSubFolder = '';
+
+        ipcRenderer.on('initial-data', (event, data) => {
+            const ipList = data.ipList;
+
+            const ipForm = document.getElementById('ipForm');
+            ipList.forEach(ip => {
+                const ipBox = document.createElement('div');
+                ipBox.classList.add('ip-box');
+
+                const statusIcon = ip.status === 'active' ? '✔️' : '❌';
+                const isDisabled = statusIcon === '❌';
+
+                ipBox.innerHTML = `
+                    <div>
+                        <input type="checkbox" id="${ip.ip}" name="ip" value="${ip.ip}" ${isDisabled ? 'disabled' : ''}>
+                        <label for="${ip.ip}">${ip.aliance_name}</label>
+                    </div>
+                    <div>${statusIcon}</div>
+                `;
+                ipForm.appendChild(ipBox);
+
+                ipBox.querySelector('input[type="checkbox"]').addEventListener('click', (event) => {
+                    const selectedIP = event.target.value;
+                    if (!isDisabled) {
+                        ipcRenderer.send('selected-ips', selectedIP);
+                        console.log(`Selected IP: ${selectedIP}`);
+
+                        document.querySelectorAll('.ip-box').forEach(box => {
+                            box.classList.remove('selected');
+                        });
+                        ipBox.classList.add('selected');
+                    }
+                });
+            });
+        });
+
+        ipcRenderer.on('folder-contents', (event, data) => {
+            const {
+                folders,
+                regularFiles
+            } = data;
+
+            const subFolderList = document.querySelector('.subfolder-list');
+            subFolderList.innerHTML = ''; // Clear previous subfolders
+
+            const subFileForm = document.querySelector('.subfile-form');
+            subFileForm.innerHTML = `
+            <div class="subfile-list"></div>
+            <div class="file-input-container">
+                <input type="file" id="fileInput" class="file-input" multiple/>
+                <label for="fileInput" class="file-label">Add file</label>
+            </div>  
+            `;
+
+            const subFileList = subFileForm.querySelector('.subfile-list');
+            subFileList.innerHTML = ''; // Clear previous files
+
+            folders.forEach(folder => {
+                const subFolderBox = document.createElement('div');
+                subFolderBox.classList.add('folder-box');
+                subFolderBox.innerHTML = `
+                    <div>
+                        <label for="folder">${folder}</label>
+                    </div>
+                `;
+                subFolderList.appendChild(subFolderBox);
+
+                subFolderBox.addEventListener('click', () => {
+                    const fullFolderPath = path.join(selectedMainFolder, folder);
+                    selectedSubFolder = fullFolderPath;
+                    ipcRenderer.send('selected-subfolder', fullFolderPath);
+                    console.log(`Selected Subfolder: ${fullFolderPath}`);
+
+                    document.querySelectorAll('.subfolder-list .folder-box').forEach(box => {
+                        box.classList.remove('selected');
+                    });
+                    subFolderBox.classList.add('selected');
+
+                    // Check if the form-divider exists before adding it
+                    if (!subFileList.previousElementSibling || !subFileList.previousElementSibling.classList.contains('form-divider')) {
+                        subFileList.insertAdjacentHTML('beforebegin', '<div class="form-divider"></div>');
+                    }
+
+                    subFileForm.innerHTML = '';
+                });
+            });
+
+            // Event listener for subfile input
+            document.getElementById('fileInput').addEventListener('change', handleSubfileUpload);
+            regularFiles.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-list-data');
+                fileItem.innerText = file;
+                subFileList.appendChild(fileItem);
+                console.log(file);
+            });
+
+            // Clear subsubfolder-list and subsubfile-list when changing folders
+            const subSubFolderList = document.querySelector('.subsubfolder-list');
+            subSubFolderList.innerHTML = ''; // Clear previous sub-subfolders
+
+
+
+            const subSubFileList = document.querySelector('.subsubfile-form');
+            subSubFileList.innerHTML = ''; // Clear previous sub-subfolder files
+        });
+
+        ipcRenderer.on('subfolder-contents', (event, data) => {
+            const {
+                folders,
+                regularFiles
+            } = data;
+            const subSubFolderList = document.querySelector('.subsubfolder-list');
+
+            subSubFolderList.innerHTML = ''; // Clear previous sub-subfolders
+
+            const subsubFileForm = document.querySelector('.subsubfile-form');
+            subsubFileForm.innerHTML = `
+            <div class="subsubfile-list"></div>
+            <div class="file-input-container">
+                <input type="file" id="fileInput" class="file-input" multiple/>
+                <label for="fileInput" class="file-label">Add file</label>
+            </div>  
+            `;
+
+            const subSubFileList = document.querySelector('.subsubfile-list');
+
+            subSubFileList.innerHTML = ''; // Clear previous sub-subfolder files
+
+            folders.forEach(folder => {
+                const subFolderBox = document.createElement('div');
+                subFolderBox.classList.add('folder-box');
+                subFolderBox.innerHTML = `
+                    <div>
+                        <label for="folder">${folder}</label>
+                    </div>
+                `;
+                subSubFolderList.appendChild(subFolderBox);
+
+                subFolderBox.addEventListener('click', () => {
+                    const fullFolderPath = path.join(selectedSubFolder, folder);
+                    ipcRenderer.send('selected-subsubfolder', fullFolderPath);
+                    console.log(`Selected Sub-Subfolder: ${fullFolderPath}`);
+
+                    document.querySelectorAll('.subsubfolder-list .folder-box').forEach(box => {
+                        box.classList.remove('selected');
+                    });
+                    subFolderBox.classList.add('selected');
+                    // Event listener for subfile input
+                    document.getElementById('fileInput').addEventListener('change', handleSubfileUpload);
+
+
+                    subSubFileList.innerHTML = '';
+                });
+            });
+
+            regularFiles.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-list-data');
+                fileItem.innerText = file;
+                subSubFileList.appendChild(fileItem);
+                console.log(file);
+            });
+        });
+
+        ipcRenderer.on('subsubfolder-files', (event, files) => {
+            const subSubFileList = document.querySelector('.subsubfile-list');
+            subSubFileList.innerHTML = '';
+            files.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.classList.add('file-list-data');
+                fileItem.innerText = file;
+                subSubFileList.appendChild(fileItem);
+                console.log(file);
+            });
+        });
+
+        ipcRenderer.on('local-path', (event, localPath) => {
+            console.log('localpath => ', localPath);
+            const localpathBanner = document.getElementById('local-path');
+            localpathBanner.innerText = `🖥️ > ${localPath}`;
+        });
+
+        document.getElementById('uploadButton').addEventListener('click', () => {
+            console.log("Upload button clicked");
+            // Add your code here for upload button action
+        });
+
+        document.getElementById('database').addEventListener('click', () => {
+            console.log("Database button clicked");
+            ipcRenderer.send('create-database');
+        });
+
+        ipcRenderer.on('database-created', (event, data) => {
+            const mainFolderList = data.folders
+            console.log(data.count)
+            const folderForm = document.querySelector('.folder-form');
+            const localpathBanner = document.getElementById('local-path');
+            localpathBanner.innerText = `🖥️ > Content\\`;
+            mainFolderList.forEach(folder => {
+                const folderBox = document.createElement('div');
+                folderBox.classList.add('folder-box');
+                folderBox.innerHTML = `
+                    <div>
+                        <label for="folder">${folder}</label>
+                    </div>
+                `;
+                folderForm.appendChild(folderBox);
+
+                folderBox.addEventListener('click', () => {
+                    ipcRenderer.send('selected-folder', folder);
+                    console.log(`Selected Folder: ${folder}`);
+                    selectedMainFolder = folder;
+
+                    document.querySelectorAll('.folder-box').forEach(box => {
+                        box.classList.remove('selected');
+                    });
+                    folderBox.classList.add('selected');
+                });
+            });
+        });
+
+
+        function handleSubfileUpload(event) {
+            const files = event.target.files;
+            if (files.length > 0) {
+                const filePaths = Array.from(files).map(file => file.path);
+                console.log('Selected files (subfile):', filePaths);
+                // Send the file paths to the main process for further processing
+                ipcRenderer.send('upload-files', {
+                    filePaths
+                });
+            }
+        }
+    </script>
+</body>
+
+</html>
