@@ -79,8 +79,7 @@ body {
 }
 
 .control-buttons .arrow:active,
-.upload-button:active,
-.file-label:active {
+.upload-button:active {
     transform: scale(0.9);
 }
 
@@ -125,14 +124,16 @@ body {
 }
 
 .ip-box:hover,
-.folder-box:hover {
+.folder-box:hover,
+.file-list-data:hover {
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     background-color: rgb(128, 128, 128);
 }
 
 .ip-box.selected,
-.folder-box.selected {
+.folder-box.selected,
+.file-list-data.selected {
     border-radius: 5px;
     background-color: rgb(171, 165, 165)
 }
@@ -249,36 +250,18 @@ body {
     background-color: #555;
 }
 
-#fileInput {
-    margin-bottom: 10px;
-    align-self: flex-start;
-}
-
-.subfile-form,
-.subsubfile-form {
-    flex: 1;
-}
-
 .subfile-form,
 .subsubfile-form {
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    /* Aligns items to the top */
-}
-
-.subfile-list,
-.subsubfile-list {
-    flex: 1;
-    /* Takes up remaining space */
-    padding-right: 10px;
-    /* Optional: Adds space between list and file input */
+    flex-direction: column;
 }
 
 .file-input-container {
     display: flex;
+    align-self: flex-end;
+    /* Align the file-input-container to the end (right) */
 }
 
-.file-input {
+#fileInput {
     display: none;
 }

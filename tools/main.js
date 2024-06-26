@@ -1,7 +1,7 @@
 const electron = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
-const { app, BrowserWindow, ipcMain } = electron;
+const { app, BrowserWindow, ipcMain, Menu } = electron;
 const xml2js = require('xml2js');
 const { connection, checkIP } = require('./sftp'); // Import functions from sftp.js
 const url = require('url');
@@ -232,7 +232,7 @@ async function listFilesAndFolders(directoryPath) {
     }
 }
 
-ipcMain.on('upload-files', async(event, { filePaths }) => {
+ipcMain.on('upload-files', async(event, { filePaths, fileSizes }) => {
     try {
         console.log(`Received file upload request ):`, filePaths);
 
@@ -248,5 +248,18 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
     } catch (error) {
         console.error('Error uploading files:', error);
         // Handle error appropriately (send error to renderer process or log)
+    }
+});
+
+
+ipcMain.on('delete-request', async(event, { filename }) => {
+
+    try {
+        await fs.unlink(filename);
+        console.log('File deleted successfully', filename);
+        event.reply('delete-response', { success: true, message: `File deleted successfully: ${filename}` });
+    } catch (error) {
+        console.error('Error deleting file:', error.message);
+        event.reply('delete-response', { success: false, message: `Error deleting file:` });
     }
 });
