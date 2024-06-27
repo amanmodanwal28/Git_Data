@@ -23,7 +23,9 @@ let mainWindow;
 let activeIPs = [];
 let localPath;
 let main_folders = [];
+let renderIDfromWeb;
 
+let count = 0
 
 
 async function createMainWindow(ipList) {
@@ -123,60 +125,12 @@ ipcMain.on('selected-ips', async(event, selectedIPs) => {
 
             // Send folders back to renderer process if needed
             event.sender.send('folders', { ip, folders });
-            // Send localPath to renderer process
-            event.sender.send('local-path', localPath);
+
         }
     } catch (e) {
         console.error('Error connecting to selected IPs:', e);
     }
 });
-
-ipcMain.on('selected-folder', async(event, folderName) => {
-    try {
-        const folderPath = path.join(directoryPath, folderName);
-        localPath = folderPath
-        console.log('Selected folderName:', folderPath);
-        const { folders, regularFiles } = await listFilesAndFolders(folderPath);
-        event.sender.send('folder-contents', { folders, regularFiles });
-        // Send localPath to renderer process
-        event.sender.send('local-path', folderPath);
-    } catch (e) {
-        console.error('Error listing folders:', e);
-    }
-});
-
-ipcMain.on('selected-subfolder', async(event, subfolderPath) => {
-    try {
-        const SubfolderPath = path.join(directoryPath, subfolderPath);
-        localPath = SubfolderPath
-        console.log('selected SubfolderPath ', SubfolderPath);
-        const { folders, regularFiles } = await listFilesAndFolders(SubfolderPath);
-        event.sender.send('subfolder-contents', { folders, regularFiles });
-        // Send localPath to renderer process
-        event.sender.send('local-path', SubfolderPath);
-    } catch (e) {
-        console.error('Error listing subfolders:', e);
-    }
-});
-
-// Handle 'selected-subsubfolder' event from renderer process
-ipcMain.on('selected-subsubfolder', async(event, subsubfolderPath) => {
-    try {
-        const SubsubfolderPath = path.join(directoryPath, subsubfolderPath);
-        localPath = SubsubfolderPath
-        console.log('Selected Sub-Subfolder :', SubsubfolderPath);
-        // List files and folders in the selected sub-subfolder path
-        const { regularFiles } = await listFilesAndFolders(SubsubfolderPath);
-        // Send the list of files back to the renderer process
-        event.sender.send('subsubfolder-files', regularFiles);
-        // Send localPath to renderer process
-        event.sender.send('local-path', SubsubfolderPath);
-    } catch (e) {
-        console.error('Error listing files in sub-subfolder:', e);
-    }
-});
-
-
 
 async function executeCommand(ipAddress, command) {
     try {
@@ -188,7 +142,8 @@ async function executeCommand(ipAddress, command) {
     }
 }
 
-let count = 0
+
+
 ipcMain.on('create-database', async(event) => {
     count++
     // if (count == '1') {
@@ -232,7 +187,57 @@ async function listFilesAndFolders(directoryPath) {
     }
 }
 
-ipcMain.on('upload-files', async(event, { filePaths, fileSizes }) => {
+
+ipcMain.on('selected-folder', async(event, folderName, renderID) => {
+    try {
+        const folderPath = path.join(directoryPath, folderName);
+        localPath = folderPath
+        renderIDfromWeb = renderID
+        console.log('Selected folderName:', folderPath);
+        const { folders, regularFiles } = await listFilesAndFolders(folderPath);
+        event.sender.send('folder-contents', { folders, regularFiles });
+        // Send localPath to renderer process
+        event.sender.send('local-path', folderPath);
+    } catch (e) {
+        console.error('Error listing folders:', e);
+    }
+});
+
+ipcMain.on('selected-subfolder', async(event, subfolderPath, renderID) => {
+    try {
+        const SubfolderPath = path.join(directoryPath, subfolderPath);
+        localPath = SubfolderPath
+        renderIDfromWeb = renderID
+        console.log('selected SubfolderPath ', SubfolderPath);
+        const { folders, regularFiles } = await listFilesAndFolders(SubfolderPath);
+        event.sender.send('subfolder-contents', { folders, regularFiles });
+        // Send localPath to renderer process
+        event.sender.send('local-path', SubfolderPath);
+    } catch (e) {
+        console.error('Error listing subfolders:', e);
+    }
+});
+
+// Handle 'selected-subsubfolder' event from renderer process
+ipcMain.on('selected-subsubfolder', async(event, subsubfolderPath, renderID) => {
+    try {
+        const SubsubfolderPath = path.join(directoryPath, subsubfolderPath);
+        localPath = SubsubfolderPath
+        renderIDfromWeb = renderID
+        console.log('Selected Sub-Subfolder :', SubsubfolderPath);
+        // List files and folders in the selected sub-subfolder path
+        const { folders, regularFiles } = await listFilesAndFolders(SubsubfolderPath);
+        // Send the list of files back to the renderer process
+        event.sender.send('subsubfolder-files', { folders, regularFiles });
+        // Send localPath to renderer process
+        event.sender.send('local-path', SubsubfolderPath);
+    } catch (e) {
+        console.error('Error listing files in sub-subfolder:', e);
+    }
+});
+
+
+ipcMain.on('upload-files', async(event, { filePaths }) => {
     try {
         console.log(`Received file upload request ):`, filePaths);
 
@@ -243,8 +248,10 @@ ipcMain.on('upload-files', async(event, { filePaths, fileSizes }) => {
             await fs.copyFile(filePath, destinationPath);
             console.log(`File copied to ${destinationPath}`);
         }
+        // Write filenames to CONFIG.SYS
+        await writeToFile(filePaths, destinationFolder);
         // Optionally, send back a confirmation or update UI as needed
-        event.sender.send('files-uploaded', { filePaths: filePaths.map(fp => path.join(destinationFolder, path.basename(fp))) });
+        event.sender.send('files-uploaded-now-reload', { filePaths: filePaths.map(fp => path.join(destinationFolder, path.basename(fp))) });
     } catch (error) {
         console.error('Error uploading files:', error);
         // Handle error appropriately (send error to renderer process or log)
@@ -252,12 +259,56 @@ ipcMain.on('upload-files', async(event, { filePaths, fileSizes }) => {
 });
 
 
-ipcMain.on('delete-request', async(event, { filename }) => {
+ipcMain.on('refresh-folder-fileList', async(event, selectedfilePathDir) => {
+    try {
+        // console.log(renderIDfromWeb)
+        const { folders, regularFiles } = await listFilesAndFolders(selectedfilePathDir); // Use the new function
+        event.sender.send(renderIDfromWeb, { folders, regularFiles });
+    } catch (error) {
+        console.error('Error refreshing folder contents:', error);
+        // Handle error appropriately (send error to renderer process or log)
+    }
+});
+
+
+// Function to write file paths to CONFIG.SYS
+async function writeToFile(filePaths, destinationFolder) {
+    try {
+        const configFilePath = path.join(__dirname, 'CONFIG.SYS');
+        // Map each filePath to a formatted path and join with newline
+        const filePathsFormatted = filePaths.map(fp => {
+            // Calculate relative path from destinationFolder
+            const relativePath = path.join(destinationFolder, path.basename(fp));
+            // Ensure path starts with '/'
+            return `/${relativePath.replace(/\\/g, '/')}`;
+        }).join('\n');
+        // Ensure filePathsFormatted starts and ends with newline
+        const configContent = `\n${filePathsFormatted}`;
+
+        console.log(configContent)
+        await fs.writeFile(configFilePath, configContent, { flag: 'a' }); // Append mode
+        // console.log(`File paths appended to CONFIG.SYS`);
+    } catch (error) {
+        console.error('Error writing to CONFIG.SYS:', error);
+        throw error; // Propagate the error upwards
+    }
+}
+
+
+
+ipcMain.on('delete-request', async(event, filePaths) => {
 
     try {
-        await fs.unlink(filename);
-        console.log('File deleted successfully', filename);
-        event.reply('delete-response', { success: true, message: `File deleted successfully: ${filename}` });
+        console.log('renderIDfromWeb =>', renderIDfromWeb)
+        for (let filename of filePaths) {
+            console.log('Deleting file:', filename);
+            await fs.unlink(filename);
+            console.log('File deleted successfully:', filename);
+        }
+        event.reply('delete-response', { success: true, message: `All files deleted successfully` });
+        // Optionally, send back a confirmation or update UI as needed
+        event.sender.send('files-uploaded-now-reload', { filePaths: filePaths.map(fp => path.join(localPath, path.basename(fp))) });
+
     } catch (error) {
         console.error('Error deleting file:', error.message);
         event.reply('delete-response', { success: false, message: `Error deleting file:` });

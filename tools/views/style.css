@@ -6,6 +6,14 @@ body {
     display: flex;
     height: 100vh;
     overflow: hidden;
+    -webkit-user-select: none;
+    /* For Safari, Chrome, and Opera */
+    -moz-user-select: none;
+    /* For Firefox */
+    -ms-user-select: none;
+    /* For Internet Explorer and Edge */
+    user-select: none;
+    /* For other browsers */
 }
 
 .container {
@@ -125,15 +133,23 @@ body {
 
 .ip-box:hover,
 .folder-box:hover,
-.file-list-data:hover {
+.file-list-data-Container:hover {
     border-radius: 5px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     background-color: rgb(128, 128, 128);
 }
 
+.single-delete-btn:hover {
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: rgb(128, 128, 128);
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 .ip-box.selected,
 .folder-box.selected,
-.file-list-data.selected {
+.file-list-data-Container.selected {
     border-radius: 5px;
     background-color: rgb(171, 165, 165)
 }
@@ -191,15 +207,39 @@ body {
     align-items: center;
 }
 
-.folder-box,
-.file-list-data {
+.folder-box {
     margin: 6px;
     padding: 5px;
-    display: flex;
     justify-content: space-between;
     cursor: pointer;
     color: whitesmoke;
     transition: transform 0.9s ease;
+}
+
+.file-list-data-Container {
+    margin: 6px;
+    cursor: pointer;
+    color: whitesmoke;
+    display: flex;
+    width: 100%;
+}
+
+.single-delete-btn {
+    border-radius: 5px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    width: 25px;
+    height: 25px;
+}
+
+.fileiconImg {
+    margin: 6px;
+    width: 20px;
+    height: 20px;
+}
+
+.FileDataSpan {
+    margin: 6px;
 }
 
 .folder-box:active,
@@ -264,4 +304,9 @@ body {
 
 #fileInput {
     display: none;
+}
+
+.file-list-container {
+    display: flex;
+    justify-content: space-between;
 }
