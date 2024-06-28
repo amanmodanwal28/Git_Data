@@ -2,12 +2,10 @@ let selectedFiles = []; // Array to hold selected file paths for deletion
 let controlKeyPressed = false; // Track whether the control key is pressed
 let isDragging = false; // Track whether a drag selection is in progress
 selectedfilePathDir
-// Event listener for Delete button click
-const deleteButton = document.getElementById('delete');
-deleteButton.addEventListener('click', deleteSelectedFiles);
+
 
 document.addEventListener('keydown', (event) => {
-    console.log('Key pressed:', event.key);
+    // console.log('Key pressed:', event.key);
     if (event.key === 'Delete') {
         deleteSelectedFiles();
     }
@@ -51,8 +49,18 @@ function deleteFileSelection(fileItem, file) {
                 fileItem.classList.remove('selected');
             } else {
                 // Select file if not already selected
+
                 selectedFiles.push(selectfilePathPath);
                 fileItem.classList.add('selected');
+
+            }
+        } else if (event.target.type === 'checkbox') {
+            if (event.target.checked) {
+                if (!selectedFiles.includes(selectfilePathPath)) {
+                    selectedFiles.push(selectfilePathPath);
+                }
+            } else {
+                selectedFiles = selectedFiles.filter(f => f !== filePath);
             }
         } else {
             // Clear selection and select only this file if control key is not pressed
@@ -61,9 +69,12 @@ function deleteFileSelection(fileItem, file) {
             allFileItems.forEach(item => item.classList.remove('selected'));
             fileItem.classList.add('selected');
         }
+        console.log(`fileItem files:`, fileItem);
+        console.log(`Selected files:`, file);
 
         console.log(`Selected files:`, selectedFiles);
     });
+
 }
 
 // Event listener to track control key state

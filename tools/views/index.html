@@ -22,7 +22,6 @@
                 <div class="btns">
                     <div class="arrow" id="leftArrow">🔙</div>
                     <button class="upload-button" id="database">Database</button>
-                    <button class="upload-button" id="delete">delete</button>
                 </div>
                 <button class="upload-button" id="uploadButton">Upload</button>
             </div>
@@ -136,15 +135,19 @@
 
             const subFileForm = document.querySelector('.subfile-form');
             subFileForm.innerHTML = `
-            
             <div class="file-input-container">
+                <button class="upload-button" id="Select-All">Select All</button>
+            <button class="upload-button" id="delete">delete</button>
                 <input type="file" id="fileInput" class="file-input" multiple/>
-                <label for="fileInput" class="file-label">Add file</label>
-            </div> 
+                <label for="fileInput" class="file-label">Add files</label>
+            </div>
+
             <div class="subfile-list"></div> 
             `;
 
             const subFileList = subFileForm.querySelector('.subfile-list');
+            const deleteButton2 = subFileForm.querySelector('#delete');
+            const SelectAllBtn = subFileForm.querySelector('#Select-All');
             subFileList.innerHTML = ''; // Clear previous files
 
             folders.forEach(folder => {
@@ -180,9 +183,8 @@
             // Event listener for subfile input
             document.getElementById('fileInput').addEventListener('change', RequestFileUpload);
 
-            RenderFileList(regularFiles, subFileList)
-
-            // Clear subsubfolder-list and subsubfile-list when changing folders
+            RenderFileList(regularFiles, subFileList, deleteButton2, SelectAllBtn)
+                // Clear subsubfolder-list and subsubfile-list when changing folders
             const subSubFolderList = document.querySelector('.subsubfolder-list');
             subSubFolderList.innerHTML = ''; // Clear previous sub-subfolders
 
@@ -202,16 +204,18 @@
 
             const subsubFileForm = document.querySelector('.subsubfile-form');
             subsubFileForm.innerHTML = `
-            
             <div class="file-input-container">
+                <button class="upload-button" id="Select-All">Select All</button>
+                <button class="upload-button" id="delete">delete</button>
                 <input type="file" id="fileInput" class="file-input" multiple/>
-                <label for="fileInput" class="file-label">Add file</label>
+                <label for="fileInput" class="file-label">Add files</label>
             </div>  
             <div class="subsubfile-list"></div>
             `;
 
             const subSubFileList = document.querySelector('.subsubfile-list');
-
+            const deleteButton2 = subsubFileForm.querySelector('#delete');
+            const SelectAllBtn = subsubFileForm.querySelector('#Select-All');
             subSubFileList.innerHTML = ''; // Clear previous sub-subfolder files
 
             folders.forEach(folder => {
@@ -244,7 +248,7 @@
             document.getElementById('fileInput').addEventListener('change', RequestFileUpload);
 
 
-            RenderFileList(regularFiles, subSubFileList)
+            RenderFileList(regularFiles, subSubFileList, deleteButton2, SelectAllBtn)
 
 
             // Add form-divider after the subfolder list is populated, if not already added
@@ -263,17 +267,35 @@
             const subSubFileList = document.querySelector('.subsubfile-list');
             subSubFileList.innerHTML = '';
 
-            RenderFileList(regularFiles, subSubFileList)
+            // Ensure deleteButton2 and SelectAllBtn are defined
+            const subsubFileForm = document.querySelector('.subsubfile-form');
+            const deleteButton2 = subsubFileForm.querySelector('#delete');
+            const SelectAllBtn = subsubFileForm.querySelector('#Select-All');
+
+
+            RenderFileList(regularFiles, subSubFileList, deleteButton2, SelectAllBtn)
 
         });
 
 
-        function RenderFileList(regularFiles, fileListForm) {
+        function RenderFileList(regularFiles, fileListForm, deleteButton2, SelectAllBtn) {
             regularFiles.forEach(file => {
+                // Disable the delete button initially and set its background color to brown
+                if (deleteButton2) {
+                    deleteButton2.disabled = true;
+                    deleteButton2.classList.add('delete-button');
+                }
                 const fileItem = document.createElement('div');
                 fileItem.classList.add('file-list-container');
-                // Create the file name element
-                // Create the file name element
+
+                const file_checkbox = document.createElement('input');
+                file_checkbox.classList.add('file-list-container-checkbox');
+                file_checkbox.type = "checkbox";
+                file_checkbox.value = file;
+                file_checkbox.id = "file_checkbox_id";
+                fileItem.appendChild(file_checkbox)
+                deleteFileSelection(file_checkbox, file)
+                    // Create the file name element
                 const fileName = document.createElement('div');
                 fileName.classList.add('file-list-data-Container');
 
@@ -281,21 +303,11 @@
                 const fileExt = file.split('.').pop().toLowerCase(); // Get file extension
                 let iconUrl = '';
 
-                if (fileExt === 'mp3' ||
-                    fileExt === 'wav' ||
-                    fileExt === 'ogg') {
+                if (['mp3', 'wav', 'ogg'].includes(fileExt)) {
                     iconUrl = './assets/music.png'; // Replace with actual path to music icon
-                } else if (fileExt === 'mp4' ||
-                    fileExt === 'avi' ||
-                    fileExt === 'mkv' ||
-                    fileExt === 'mpg' ||
-                    fileExt === 'm4v') {
+                } else if (['mp4', 'avi', 'mkv', 'mpg', 'm4v'].includes(fileExt)) {
                     iconUrl = './assets/video.png'; // Replace with actual path to video icon
-                } else if (fileExt === 'jpg' ||
-                    fileExt === 'jpeg' ||
-                    fileExt === 'png' ||
-                    fileExt === 'gif' ||
-                    fileExt === 'ico') {
+                } else if (['jpg', 'jpeg', 'png', 'gif', 'ico'].includes(fileExt)) {
                     iconUrl = './assets/images.png'; // Replace with actual path to image icon
                 } else {
                     iconUrl = './assets/default.png';
@@ -315,27 +327,41 @@
                 FileDataSpan.innerText = file;
                 fileName.appendChild(FileDataSpan);
 
-
                 fileItem.appendChild(fileName);
                 deleteFileSelection(fileName, file)
-                    // Create the file span element
-                const deleteButton = document.createElement('span');
-                deleteButton.innerText = "🗑️";
-                fileItem.appendChild(deleteButton);
-                deleteButton.classList.add('single-delete-btn')
-                deleteFileSelection(deleteButton, file)
 
                 fileListForm.appendChild(fileItem);
-                console.log(file);
+                //console.log(file);
+                if (deleteButton2) {
+                    deleteButton2.addEventListener('click', deleteSelectedFiles);
+                }
 
-                deleteButton.addEventListener('click', () => {
-                    console.log("click span button")
-                    deleteSelectedFiles()
-                    console.log("delete select file ", file)
+                if (SelectAllBtn) {
+                    SelectAllBtn.addEventListener('click', () => {
+                        selectAllFiles();
+                        file_checkbox.style.display = 'none';
+                    });
+                }
+
+                fileName.addEventListener('click', () => {
+                    const checkboxes = document.querySelectorAll('.file-list-container-checkbox');
+                    checkboxes.forEach(checkbox => {
+                        checkbox.style.display = 'block'
+                        checkbox.checked = false;
+                    });
                 })
 
+                file_checkbox.addEventListener('click', () => {
+                    if (SelectAllBtn) {
+                        SelectAllBtn.style.display = 'block';
+                    }
+                    fileName.classList.add('selected');
+                    if (deleteButton2) {
+                        deleteButton2.disabled = false;
+                        deleteButton2.classList.add('enabled'); // Add the enabled class to apply hover effect
+                    }
+                });
             });
-
         }
 
 

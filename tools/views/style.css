@@ -16,6 +16,10 @@ body {
     /* For other browsers */
 }
 
+.Any-data-display {
+    display: none;
+}
+
 .container {
     display: flex;
     width: 100%;
@@ -83,6 +87,7 @@ body {
     color: white;
     cursor: pointer;
     margin-right: 10px;
+    margin: 10px 5px;
     transition: transform 0.1s ease;
 }
 
@@ -92,12 +97,16 @@ body {
 }
 
 .upload-button,
-.file-label {
+.file-label,
+.delete-button.enabled {
+    height: fit-content;
+    width: fit-content;
     padding: 10px 20px;
     background-color: #007bff;
     color: white;
     border: none;
     border-radius: 5px;
+    margin: 10px 5px;
     cursor: pointer;
     font-size: 16px;
     transition: transform 0.1s ease, background-color 0.3s;
@@ -108,7 +117,8 @@ body {
 }
 
 .upload-button:hover,
-.file-label:hover {
+.file-label:hover,
+.delete-button.enabled:hover {
     background-color: #0056b3;
 }
 
@@ -139,14 +149,6 @@ body {
     background-color: rgb(128, 128, 128);
 }
 
-.single-delete-btn:hover {
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background-color: rgb(128, 128, 128);
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-
 .ip-box.selected,
 .folder-box.selected,
 .file-list-data-Container.selected {
@@ -155,7 +157,9 @@ body {
 }
 
 .ip-box input[type="radio"],
-.ip-box input[type="checkbox"] {
+.ip-box input[type="checkbox"],
+.file-list-container-checkbox,
+#Select-All {
     display: none;
 }
 
@@ -197,9 +201,11 @@ body {
 }
 
 .ip-box input[type="radio"]:disabled+label::before,
-.ip-box input[type="checkbox"]:disabled+label::before {
+.ip-box input[type="checkbox"]:disabled+label::before,
+.delete-button {
     background: #bdb9b9;
-    border: 2px solid #bdb9b9;
+    border: 1px solid #bdb9b9;
+    cursor: not-allowed;
 }
 
 .ip-box div {
@@ -222,14 +228,6 @@ body {
     color: whitesmoke;
     display: flex;
     width: 100%;
-}
-
-.single-delete-btn {
-    border-radius: 5px;
-    margin-top: 5px;
-    margin-bottom: 10px;
-    width: 25px;
-    height: 25px;
 }
 
 .fileiconImg {
