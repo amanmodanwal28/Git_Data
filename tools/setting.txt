@@ -5,9 +5,9 @@
   },
   "[markdown]": {
     "editor.quickSuggestions": {
-      "comments": "off",
-      "other": "on",
-      "strings": "off"
+      "comments": "inline",
+      "other": "inline",
+      "strings": "inline"
     }
   },
   "[typescript]": {
@@ -708,4 +708,12 @@
   },
   "[jsonc]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },  
+"editor.quickSuggestions": {
+    "other": "inline",
+    "comments": "inline",
+    "strings": "inline"
+  },
+  "editor.quickSuggestionsDelay": 5,
+  "terminal.integrated.tabs.defaultColor": "terminal.ansiBlue",
+  "task.quickOpen.showAll": true

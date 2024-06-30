@@ -1,0 +1,82 @@
+// Function to write file paths to CONFIG.SYS
+async function writeToFile(filePaths, destinationFolder) {
+    try {
+        const configFilePath = path.join(__dirname, 'CONFIG.SYS')
+
+        // Check if the file already has content
+        let fileContent = ''
+        try {
+            fileContent = await fs.readFile(configFilePath, 'utf8')
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                throw err // Re-throw if error is not "file not found"
+            }
+        }
+
+        // Fetch file sizes for each filePath asynchronously
+        const fileDataPromises = filePaths.map(async(fp) => {
+            const absolutePath = path
+                .join('/', destinationFolder, path.basename(fp))
+                .replace(/\\/g, '/')
+            const stats = await stat(fp)
+            const crc = await calculateFileCRC32(fp)
+            return {
+                path: absolutePath,
+                size: stats.size,
+                crc: crc.toString(16).toUpperCase().padStart(8, '0'),
+            }
+        })
+
+        // Wait for all promises to resolve
+        const fileData = await Promise.all(fileDataPromises)
+
+        // Format data with headings and file sizes
+        let formattedContent = ''
+        if (!fileContent.includes('  CRC             SIZE   FILENAME')) {
+            formattedContent += '  CRC             SIZE   FILENAME\n'
+        }
+
+        fileData.forEach((item) => {
+            formattedContent += `${item.crc}    ${item.size
+          .toString()
+          .padStart(10)}   ${item.path}\n`
+        })
+
+        // Append to CONFIG.SYS
+        await fs.writeFile(configFilePath, formattedContent, { flag: 'a' }) // Append mode
+
+        console.log('Data appended to CONFIG.SYS')
+    } catch (error) {
+        console.error('Error writing to CONFIG.SYS:', error)
+        throw error // Propagate the error upwards
+    }
+}
+
+// CRC32 calculation function
+function calculateCRC32(data) {
+    const table = new Uint32Array(256).map((_, index) => {
+        let crc = index;
+        for (let j = 0; j < 8; j++) {
+            crc = crc & 1 ? (crc >>> 1) ^ 0xedb88320 : crc >>> 1;
+        }
+        return crc;
+    });
+
+    let crc = 0xffffffff;
+    for (let i = 0; i < data.length; i++) {
+        crc = (crc >>> 8) ^ table[(crc ^ data.charCodeAt(i)) & 0xff];
+    }
+    return (crc ^ 0xffffffff) >>> 0;
+}
+
+async function calculateFileCRC32(filePath) {
+    try {
+        // Read the file asynchronously
+        const fileData = await fs.readFile(filePath, 'utf8');
+        // Calculate CRC32 checksum
+        return calculateCRC32(fileData);
+    } catch (error) {
+        console.error('Error reading file:', error);
+        return null;
+    }
+}

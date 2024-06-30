@@ -1,0 +1,7 @@
+better comment,
+import cost,
+jest,
+version lens,
+css peek,
+ShellCheck,
+figma for vscode

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+</head>
+
+<body>
+
+    <button id="deleteButton">Delete File</button>
+
+    <script>
+        const {
+            ipcRenderer
+        } = require('electron');
+
+
+        document.getElementById('deleteButton').addEventListener('click', () => {
+            ipcRenderer.send('confirm-delete');
+        });
+
+        ipcRenderer.on('delete-status', (event, status) => {
+            if (status.success) {
+                alert('File deleted successfully!', status.success);
+                console.log('File deleted successfully!', status.success);
+                // Handle any UI updates or further logic on successful delete
+            } else if (status.cancelled) {
+                console.log('Delete operation cancelled.', status.cancelled);
+                // Handle cancellation if needed
+            }
+        });
+    </script>
+</body>
+
+</html>
