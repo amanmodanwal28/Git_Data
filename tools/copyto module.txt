@@ -1,4 +1,3 @@
-// Function to write file paths to CONFIG.SYS
 async function writeToFile(filePaths, destinationFolder) {
     try {
         const configFilePath = path.join(__dirname, 'CONFIG.SYS')
@@ -15,15 +14,15 @@ async function writeToFile(filePaths, destinationFolder) {
 
         // Fetch file sizes for each filePath asynchronously
         const fileDataPromises = filePaths.map(async(fp) => {
-            const absolutePath = path
-                .join('/', destinationFolder, path.basename(fp))
-                .replace(/\\/g, '/')
+            const absolutePath = path.join(destinationFolder, path.basename(fp))
+            const relativePath = path.join('/', absolutePath).replace(/\\/g, '/')
             const stats = await stat(fp)
             const crc = await calculateFileCRC32(fp)
             return {
-                path: absolutePath,
+                absolutePaths: absolutePath,
+                path: relativePath,
                 size: stats.size,
-                crc: crc.toString(16).toUpperCase().padStart(8, '0'),
+                crc: crc.toString(16).toUpperCase().padStart(8, '0')
             }
         })
 
@@ -46,37 +45,39 @@ async function writeToFile(filePaths, destinationFolder) {
         await fs.writeFile(configFilePath, formattedContent, { flag: 'a' }) // Append mode
 
         console.log('Data appended to CONFIG.SYS')
+
+        // Now call CopyToMudules with the formatted fileData
+        await CopyToMudules(fileData)
     } catch (error) {
         console.error('Error writing to CONFIG.SYS:', error)
         throw error // Propagate the error upwards
     }
 }
+async function CopyToMudules(fileData) {
 
-// CRC32 calculation function
-function calculateCRC32(data) {
-    const table = new Uint32Array(256).map((_, index) => {
-        let crc = index;
-        for (let j = 0; j < 8; j++) {
-            crc = crc & 1 ? (crc >>> 1) ^ 0xedb88320 : crc >>> 1;
-        }
-        return crc;
-    });
-
-    let crc = 0xffffffff;
-    for (let i = 0; i < data.length; i++) {
-        crc = (crc >>> 8) ^ table[(crc ^ data.charCodeAt(i)) & 0xff];
-    }
-    return (crc ^ 0xffffffff) >>> 0;
-}
-
-async function calculateFileCRC32(filePath) {
     try {
-        // Read the file asynchronously
-        const fileData = await fs.readFile(filePath, 'utf8');
-        // Calculate CRC32 checksum
-        return calculateCRC32(fileData);
-    } catch (error) {
-        console.error('Error reading file:', error);
-        return null;
+        const checks = fileData.map(async(item) => {
+            try {
+                await fs.access(item.absolutePaths)
+                console.log(`File exists: ${item.absolutePaths}`)
+
+                // Destination path on the remote server
+                const remotePath = `/usr/share/apache2/htdocs${ item.path }`
+
+                // Upload the file to the remote server
+                await uploadFile(
+                    '192.168.0.243',
+                    item.absolutePaths,
+                    remotePath
+                )
+                console.log(`File copied to module  ${remotePath}`)
+            } catch (err) {
+                console.error(err)
+            }
+        })
+
+        await Promise.all(checks)
+    } catch (err) {
+        console.error('error')
     }
 }

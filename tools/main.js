@@ -1,21 +1,21 @@
 const electron = require('electron');
 const path = require('path');
 const fs = require('fs').promises;
-const { app, BrowserWindow, ipcMain, Menu, dialog } = electron
+const { stat } = require('fs').promises
+const { app, BrowserWindow, ipcMain, Menu, dialog } = electron;
 const xml2js = require('xml2js');
-const { connection, checkIP } = require('./sftp'); // Import functions from sftp.js
+const { connection, checkIP, uploadFile } = require('./sftp') // Import functions from sftp.js
 const url = require('url');
 const {
     createDatabaseDirectories,
     readXmlFile,
     extractFolderInfo,
-    extractField,
-
-} = require('./xmlParser');
-// Create a new instance of the parser
+    extractField
+} = require('./xmlParser')
+    // Create a new instance of the parser
 const parser = new xml2js.Parser({ explicitArray: false });
 
-const directoryPath = './Content'; // Replace with your folder path
+const directoryPath = './content'; // Replace with your folder path
 
 
 let store;
@@ -114,18 +114,9 @@ ipcMain.on('selected-ips', async(event, selectedIPs) => {
     try {
         console.log('Received selected-ips event with:', selectedIPs);
         const activeSelectedIPs = [selectedIPs].filter(ip => activeIPs.some(active => active.ip === ip));
-
+        console.log('active ip is ', activeSelectedIPs)
         for (const ip of activeSelectedIPs) {
-
-            // Execute pwd
-            const pwdResult = await executeCommand(ip, 'cd .. && cd /usr/share/apache2/htdocs/content/ && ls');
-            // Split the stdout by newline and add each folder name to the array
-            const folders = pwdResult.stdout.split('\n').filter(folder => folder.trim() !== '');
-            // console.log('Folders:', folders);
-
-            // Send folders back to renderer process if needed
-            event.sender.send('folders', { ip, folders });
-
+            // console.log("active ip is ", ip)
         }
     } catch (e) {
         console.error('Error connecting to selected IPs:', e);
@@ -250,6 +241,7 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
         }
         // Write filenames to CONFIG.SYS
         await writeToFile(filePaths, destinationFolder);
+
         // Optionally, send back a confirmation or update UI as needed
         event.sender.send('files-uploaded-now-reload', { filePaths: filePaths.map(fp => path.join(destinationFolder, path.basename(fp))) });
     } catch (error) {
@@ -272,27 +264,125 @@ ipcMain.on('refresh-folder-fileList', async(event, selectedfilePathDir) => {
 
 
 // Function to write file paths to CONFIG.SYS
+// Function to write file paths to CONFIG.SYS
 async function writeToFile(filePaths, destinationFolder) {
     try {
-        const configFilePath = path.join(__dirname, 'CONFIG.SYS');
-        // Map each filePath to a formatted path and join with newline
-        const filePathsFormatted = filePaths.map(fp => {
-            // Calculate relative path from destinationFolder
-            const relativePath = path.join(destinationFolder, path.basename(fp));
-            // Ensure path starts with '/'
-            return `/${relativePath.replace(/\\/g, '/')}`;
-        }).join('\n');
-        // Ensure filePathsFormatted starts and ends with newline
-        const configContent = `\n${filePathsFormatted}`;
+        const configFilePath = path.join(__dirname, 'CONFIG.SYS')
 
-        console.log(configContent)
-        await fs.writeFile(configFilePath, configContent, { flag: 'a' }); // Append mode
-        // console.log(`File paths appended to CONFIG.SYS`);
+        // Check if the file already has content
+        let fileContent = ''
+        try {
+            fileContent = await fs.readFile(configFilePath, 'utf8')
+        } catch (err) {
+            if (err.code !== 'ENOENT') {
+                throw err // Re-throw if error is not "file not found"
+            }
+        }
+
+        // Fetch file sizes for each filePath asynchronously
+        const fileDataPromises = filePaths.map(async(fp) => {
+            const absolutePath = path.join(destinationFolder, path.basename(fp))
+            const relativePath = path.join('/', absolutePath).replace(/\\/g, '/')
+            const stats = await stat(fp)
+            const crc = await calculateFileCRC32(fp)
+            return {
+                absolutePaths: absolutePath,
+                path: relativePath,
+                size: stats.size,
+                crc: crc.toString(16).toUpperCase().padStart(8, '0')
+            }
+        })
+
+        // Wait for all promises to resolve
+        const fileData = await Promise.all(fileDataPromises)
+
+        // Format data with headings and file sizes
+        let formattedContent = ''
+        if (!fileContent.includes('  CRC             SIZE   FILENAME')) {
+            formattedContent += '  CRC             SIZE   FILENAME\n'
+        }
+
+        fileData.forEach((item) => {
+            formattedContent += `${item.crc}    ${item.size
+          .toString()
+          .padStart(10)}   ${item.path}\n`
+        })
+
+        // Append to CONFIG.SYS
+        await fs.writeFile(configFilePath, formattedContent, { flag: 'a' }) // Append mode
+
+        console.log('Data appended to CONFIG.SYS')
+
     } catch (error) {
-        console.error('Error writing to CONFIG.SYS:', error);
-        throw error; // Propagate the error upwards
+        console.error('Error writing to CONFIG.SYS:', error)
+        throw error // Propagate the error upwards
     }
 }
+async function calculateFileCRC32(filePath) {
+    try {
+        // Read the file asynchronously
+        const fileData = await fs.readFile(filePath, 'utf8')
+            // Calculate CRC32 checksum
+            // CRC32 calculation
+        const table = new Uint32Array(256).map((_, index) => {
+            let crc = index
+            for (let j = 0; j < 8; j++) {
+                crc = crc & 1 ? (crc >>> 1) ^ 0xedb88320 : crc >>> 1
+            }
+            return crc
+        })
+        let crc = 0xffffffff
+        for (let i = 0; i < fileData.length; i++) {
+            crc = (crc >>> 8) ^ table[(crc ^ fileData.charCodeAt(i)) & 0xff]
+        }
+        return (crc ^ 0xffffffff) >>> 0
+    } catch (error) {
+        console.error('Error reading file:', error);
+        return null;
+    }
+}
+
+ipcMain.on('uploadButton-sending-request', async(event) => {
+    console.log('Handling uploadButton-sending-request event...')
+    try {
+        const filenames = await extractFilenamePaths()
+            // Perform any additional logic with filenames if needed
+        event.sender.send('uploadButton-sending-response', filenames)
+    } catch (err) {
+        console.error('Error handling uploadButton-sending-request event:', err)
+        event.sender.send('uploadButton-sending-response', [])
+    }
+})
+
+
+async function extractFilenamePaths() {
+    try {
+        const data = await fs.readFile('./CONFIG.SYS', { encoding: 'utf8' })
+        const lines = data.split('\n')
+        let filenamePaths = []
+
+        lines.forEach((line) => {
+            const parts = line.trim().split(/\s+/)
+            if (parts.length >= 3) {
+                const filename = parts[2]
+                if (!filenamePaths.includes(filename)) {
+                    filenamePaths.push(filename)
+                }
+            }
+        })
+
+        // Filter out 'FILENAME' if present in the array
+        filenamePaths = filenamePaths.filter((path) => path !== 'FILENAME')
+
+        console.log(filenamePaths)
+        return filenamePaths
+    } catch (err) {
+        console.error('Error reading or processing CONFIG.SYS:', err)
+        return []
+    }
+}
+
+
 
 ipcMain.on('delete-request', async(event, filePaths) => {
 
@@ -303,18 +393,17 @@ ipcMain.on('delete-request', async(event, filePaths) => {
             await fs.unlink(filename);
             console.log('File deleted successfully:', filename);
         }
-        event.reply('delete-response', { success: true, message: `All files deleted successfully` });
+        event.reply('delete-response', { success: true, message: `
+                All files deleted successfully ` });
         // Optionally, send back a confirmation or update UI as needed
         event.sender.send('files-uploaded-now-reload', { filePaths: filePaths.map(fp => path.join(localPath, path.basename(fp))) });
 
     } catch (error) {
         console.error('Error deleting file:', error.message);
-        event.reply('delete-response', { success: false, message: `Error deleting file:` });
+        event.reply('delete-response', { success: false, message: `
+                Error deleting file: ` });
     }
 });
-
-
-
 
 ipcMain.on('confirm-delete', async(event) => {
     const options = {
@@ -322,7 +411,7 @@ ipcMain.on('confirm-delete', async(event) => {
         buttons: ['OK', 'Cancel'],
         defaultId: 1,
         title: 'Confirmation',
-        message: 'Are you sure you want to delete the file?',
+        message: 'Are you sure you want to delete the file?'
     }
     const choice = await dialog.showMessageBox(mainWindow, options)
     if (choice.response === 0) {

@@ -1,8 +1,5 @@
 let selectedFiles = []; // Array to hold selected file paths for deletion
-let controlKeyPressed = false; // Track whether the control key is pressed
-let isDragging = false; // Track whether a drag selection is in progress
 selectedfilePathDir
-
 
 document.addEventListener('keydown', (event) => {
     // console.log('Key pressed:', event.key);
@@ -23,7 +20,7 @@ function deleteSelectedFiles() {
 function Comfirmation_Request() {
     ipcRenderer.send('confirm-delete')
 }
-
+//   show  dialog  output
 ipcRenderer.on('delete-status', (event, status) => {
     if (status.success) {
         alert('File deleted successfully!', status.success)
@@ -36,10 +33,10 @@ ipcRenderer.on('delete-status', (event, status) => {
     }
 })
 
-
 document.addEventListener('keydown', (event) => {
     if ((event.ctrlKey || event.metaKey) && event.key === 'a' || event.key === 'A') {
         selectAllFiles();
+
     }
 });
 
@@ -77,7 +74,7 @@ function deleteFileSelection(fileItem, file) {
                     selectedFiles.push(selectfilePathPath);
                 }
             } else {
-                selectedFiles = selectedFiles.filter(f => f !== filePath);
+                selectedFiles = selectedFiles.filter((f) => f !== selectfilePathPath)
             }
         } else {
             // Clear selection and select only this file if control key is not pressed
