@@ -1,11 +1,12 @@
 const electron = require('electron');
 const path = require('path');
-const fs = require('fs').promises;
+const fs = require('fs');
 const { stat } = require('fs').promises
 const { app, BrowserWindow, ipcMain, Menu, dialog } = electron;
 const xml2js = require('xml2js');
 const { connection, checkIP, uploadFile } = require('./sftp') // Import functions from sftp.js
 const url = require('url');
+const crc = require('crc')
 const {
     createDatabaseDirectories,
     readXmlFile,
@@ -157,13 +158,13 @@ ipcMain.on('create-database', async(event) => {
 
 async function listFilesAndFolders(directoryPath) {
     try {
-        const items = await fs.readdir(directoryPath);
+        const items = await fs.promises.readdir(directoryPath)
         let folders = [];
         let regularFiles = [];
 
         for (const item of items) {
             const fullPath = path.join(directoryPath, item);
-            const stats = await fs.stat(fullPath);
+            const stats = await fs.promises.stat(fullPath)
 
             if (stats.isDirectory()) {
                 folders.push(item);
@@ -228,6 +229,19 @@ ipcMain.on('selected-subsubfolder', async(event, subsubfolderPath, renderID) => 
 });
 
 
+ipcMain.on('refresh-folder-fileList', async(event, selectedfilePathDir) => {
+    try {
+        // console.log(renderIDfromWeb)
+        const { folders, regularFiles } = await listFilesAndFolders(
+                selectedfilePathDir
+            ) // Use the new function
+        event.sender.send(renderIDfromWeb, { folders, regularFiles })
+    } catch (error) {
+        console.error('Error refreshing folder contents:', error)
+            // Handle error appropriately (send error to renderer process or log)
+    }
+})
+
 ipcMain.on('upload-files', async(event, { filePaths }) => {
     try {
         console.log(`Received file upload request ):`, filePaths);
@@ -236,7 +250,7 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
         // Copy each file to the destination folder
         for (const filePath of filePaths) {
             const destinationPath = path.join(destinationFolder, path.basename(filePath));
-            await fs.copyFile(filePath, destinationPath);
+            await copyFile(filePath, destinationPath)
             console.log(`File copied to ${destinationPath}`);
         }
         // Write filenames to CONFIG.SYS
@@ -250,17 +264,18 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
     }
 });
 
+function copyFile(source, target) {
+    return new Promise((resolve, reject) => {
+        const rd = fs.createReadStream(source)
+        const wr = fs.createWriteStream(target)
 
-ipcMain.on('refresh-folder-fileList', async(event, selectedfilePathDir) => {
-    try {
-        // console.log(renderIDfromWeb)
-        const { folders, regularFiles } = await listFilesAndFolders(selectedfilePathDir); // Use the new function
-        event.sender.send(renderIDfromWeb, { folders, regularFiles });
-    } catch (error) {
-        console.error('Error refreshing folder contents:', error);
-        // Handle error appropriately (send error to renderer process or log)
-    }
-});
+        rd.on('error', reject)
+        wr.on('error', reject)
+        wr.on('finish', resolve)
+
+        rd.pipe(wr)
+    })
+}
 
 
 // Function to write file paths to CONFIG.SYS
@@ -272,18 +287,36 @@ async function writeToFile(filePaths, destinationFolder) {
         // Check if the file already has content
         let fileContent = ''
         try {
-            fileContent = await fs.readFile(configFilePath, 'utf8')
+            fileContent = await new Promise((resolve, reject) => {
+                fs.readFile(configFilePath, 'utf8', (err, data) => {
+                    if (err) {
+                        if (err.code === 'ENOENT') {
+                            resolve('')
+                        } else {
+                            reject(err)
+                        }
+                    } else {
+                        resolve(data)
+                    }
+                })
+            })
         } catch (err) {
-            if (err.code !== 'ENOENT') {
-                throw err // Re-throw if error is not "file not found"
-            }
+            throw err // Re-throw if error is not "file not found"
         }
 
         // Fetch file sizes for each filePath asynchronously
         const fileDataPromises = filePaths.map(async(fp) => {
             const absolutePath = path.join(destinationFolder, path.basename(fp))
             const relativePath = path.join('/', absolutePath).replace(/\\/g, '/')
-            const stats = await stat(fp)
+            const stats = await new Promise((resolve, reject) => {
+                fs.stat(fp, (err, stats) => {
+                    if (err) {
+                        reject(err)
+                    } else {
+                        resolve(stats)
+                    }
+                })
+            })
             const crc = await calculateFileCRC32(fp)
             return {
                 absolutePaths: absolutePath,
@@ -304,55 +337,48 @@ async function writeToFile(filePaths, destinationFolder) {
 
         fileData.forEach((item) => {
             formattedContent += `${item.crc}    ${item.size
-          .toString()
-          .padStart(10)}   ${item.path}\n`
+        .toString()
+        .padStart(10)}   ${item.path}\n`
         })
 
         // Append to CONFIG.SYS
-        await fs.writeFile(configFilePath, formattedContent, { flag: 'a' }) // Append mode
+        await new Promise((resolve, reject) => {
+            fs.writeFile(configFilePath, formattedContent, { flag: 'a' }, (err) => {
+                if (err) {
+                    reject(err)
+                } else {
+                    resolve()
+                }
+            })
+        })
 
         console.log('Data appended to CONFIG.SYS')
-
     } catch (error) {
         console.error('Error writing to CONFIG.SYS:', error)
         throw error // Propagate the error upwards
     }
 }
-async function calculateFileCRC32(filePath) {
-    try {
-        // Read the file asynchronously
-        const fileData = await fs.readFile(filePath, 'utf8')
-            // Calculate CRC32 checksum
-            // CRC32 calculation
-        const table = new Uint32Array(256).map((_, index) => {
-            let crc = index
-            for (let j = 0; j < 8; j++) {
-                crc = crc & 1 ? (crc >>> 1) ^ 0xedb88320 : crc >>> 1
-            }
-            return crc
-        })
-        let crc = 0xffffffff
-        for (let i = 0; i < fileData.length; i++) {
-            crc = (crc >>> 8) ^ table[(crc ^ fileData.charCodeAt(i)) & 0xff]
-        }
-        return (crc ^ 0xffffffff) >>> 0
-    } catch (error) {
-        console.error('Error reading file:', error);
-        return null;
-    }
-}
 
-ipcMain.on('uploadButton-sending-request', async(event) => {
-    console.log('Handling uploadButton-sending-request event...')
-    try {
-        const filenames = await extractFilenamePaths()
-            // Perform any additional logic with filenames if needed
-        event.sender.send('uploadButton-sending-response', filenames)
-    } catch (err) {
-        console.error('Error handling uploadButton-sending-request event:', err)
-        event.sender.send('uploadButton-sending-response', [])
-    }
-})
+async function calculateFileCRC32(filePath) {
+    return new Promise((resolve, reject) => {
+        const stream = fs.createReadStream(filePath)
+        let crc32
+
+        stream.on('data', (chunk) => {
+            crc32 = crc.crc32(chunk, crc32)
+        })
+
+        stream.on('end', () => {
+            const checksum = crc32.toString(16).toUpperCase()
+            resolve(checksum)
+        })
+
+        stream.on('error', (error) => {
+            console.error('Error calculating CRC32:', error)
+            reject(error)
+        })
+    })
+}
 
 
 async function extractFilenamePaths() {
@@ -390,7 +416,7 @@ ipcMain.on('delete-request', async(event, filePaths) => {
         console.log('renderIDfromWeb =>', renderIDfromWeb)
         for (let filename of filePaths) {
             console.log('Deleting file:', filename);
-            await fs.unlink(filename);
+            await fs.promises.unlink(filename)
             console.log('File deleted successfully:', filename);
         }
         event.reply('delete-response', { success: true, message: `
