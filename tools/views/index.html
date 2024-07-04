@@ -312,11 +312,11 @@
                 const fileExt = file.split('.').pop().toLowerCase(); // Get file extension
                 let iconUrl = '';
 
-                if (['mp3', 'wav', 'ogg'].includes(fileExt)) {
+                if (['mp3', 'wav', 'ogg', 'pcm', 'aiff', 'aac', 'wma', 'flac', 'alac', 'opus', 'dts', 'ac3', 'amr', 'mid'].includes(fileExt)) {
                     iconUrl = './assets/music.png'; // Replace with actual path to music icon
-                } else if (['mp4', 'avi', 'mkv', 'mpg', 'm4v'].includes(fileExt)) {
+                } else if (['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm', 'mpeg', 'mpg', 'm4v', '3gp', 'ogv', 'ts', 'vob'].includes(fileExt)) {
                     iconUrl = './assets/video.png'; // Replace with actual path to video icon
-                } else if (['jpg', 'jpeg', 'png', 'gif', 'ico'].includes(fileExt)) {
+                } else if (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'svg', 'webp', 'heic', 'ico', 'avif', 'psd', 'raw'].includes(fileExt)) {
                     iconUrl = './assets/images.png'; // Replace with actual path to image icon
                 } else {
                     iconUrl = './assets/default.png';

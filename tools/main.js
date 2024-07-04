@@ -1,12 +1,14 @@
 const electron = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { stat } = require('fs').promises
+const { spawn } = require('child_process')
 const { app, BrowserWindow, ipcMain, Menu, dialog } = electron;
 const xml2js = require('xml2js');
 const { connection, checkIP, uploadFile } = require('./sftp') // Import functions from sftp.js
 const url = require('url');
 const crc = require('crc')
+const ffmpegScript = require('./ffmpeg_path'); // Adjust the path as necessary
+
 const {
     createDatabaseDirectories,
     readXmlFile,
@@ -17,7 +19,12 @@ const {
 const parser = new xml2js.Parser({ explicitArray: false });
 
 const directoryPath = './content'; // Replace with your folder path
+// Define your music and video file extensions
+const musicFileExtensions = ['mp3', 'wav', 'ogg', 'pcm', 'aiff', 'aac', 'wma', 'flac', 'alac', 'opus', 'dts', 'ac3', 'amr', 'mid']
+const videoFileExtensions = ['mp4', 'avi', 'mkv', 'mov', 'wmv', 'flv', 'webm', 'mpeg', 'mpg', 'm4v', '3gp', 'ogv', 'ts', 'vob']
+const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'svg', 'webp', 'heic', 'ico', 'avif', 'psd', 'raw']
 
+const musicVideoEXT = [...musicFileExtensions, ...videoFileExtensions]
 
 let store;
 let mainWindow;
@@ -25,7 +32,7 @@ let activeIPs = [];
 let localPath;
 let main_folders = [];
 let renderIDfromWeb;
-
+let local_filepath;
 let count = 0
 
 
@@ -74,6 +81,8 @@ async function createMainWindow(ipList) {
 app.on('ready', async() => {
     try {
         await processXmlData();
+        await ffmpegScript.setupFfmpeg();
+
     } catch (error) {
         console.error('Failed to create main window:', error);
     }
@@ -231,54 +240,139 @@ ipcMain.on('selected-subsubfolder', async(event, subsubfolderPath, renderID) => 
 
 ipcMain.on('refresh-folder-fileList', async(event, selectedfilePathDir) => {
     try {
-        // console.log(renderIDfromWeb)
+        console.log(renderIDfromWeb)
         const { folders, regularFiles } = await listFilesAndFolders(
                 selectedfilePathDir
             ) // Use the new function
         event.sender.send(renderIDfromWeb, { folders, regularFiles })
+        console.log('refresh-folder-fileList')
     } catch (error) {
         console.error('Error refreshing folder contents:', error)
             // Handle error appropriately (send error to renderer process or log)
     }
 })
 
+
 ipcMain.on('upload-files', async(event, { filePaths }) => {
     try {
-        console.log(`Received file upload request ):`, filePaths);
+        console.log('Received file upload request:', filePaths)
+        const destinationFolder = localPath // Assuming `localPath` is defined and points to the correct folder
 
-        const destinationFolder = localPath; // Assuming `localPath` is defined and points to the correct folder
-        // Copy each file to the destination folder
-        for (const filePath of filePaths) {
-            const destinationPath = path.join(destinationFolder, path.basename(filePath));
-            await copyFile(filePath, destinationPath)
-            console.log(`File copied to ${destinationPath}`);
+        const filesToWrite = []
+
+        // Process each file
+        await Promise.all(
+            filePaths.map(async(filePath) => {
+                const filename = path.basename(filePath)
+                const destinationPath = path.join(destinationFolder, filename)
+                console.log('Processing file:', filename)
+
+                try {
+                    await fs.promises.access(destinationPath)
+                    console.log(`File already exists: ${destinationPath}`)
+                } catch {
+                    // File does not exist
+                    console.log(`File does not exist, processing: ${destinationPath}`)
+
+                    if (
+                        musicVideoEXT.some((ext) => filePath.toLowerCase().endsWith(ext))
+                    ) {
+                        // Handle media files (e.g., run ffmpeg)
+                        try {
+                            await processMediaFile(filePath, destinationPath)
+                        } catch (err) {
+                            console.error('Error processing media file:', err)
+                            throw err // Throw error to propagate it upwards
+                        }
+                    } else {
+                        // Copy the file directly to the destination folder
+                        console.log('Copying file:', filename)
+                        await copyFile(filePath, destinationPath)
+                        console.log(`File copied to ${destinationPath}`)
+                    }
+
+                    filesToWrite.push(filePath)
+                }
+            })
+        )
+
+        console.log('filesToWrite', filesToWrite)
+
+        if (filesToWrite.length > 0) {
+            // Write filenames to CONFIG.SYS
+            await writeToFile(filesToWrite, destinationFolder)
+        } else {
+            console.log('All files already exist, skipping write to CONFIG.SYS')
         }
-        // Write filenames to CONFIG.SYS
-        await writeToFile(filePaths, destinationFolder);
-
-        // Optionally, send back a confirmation or update UI as needed
-        event.sender.send('files-uploaded-now-reload', { filePaths: filePaths.map(fp => path.join(destinationFolder, path.basename(fp))) });
+        // Send back a confirmation or update UI after all files are processed
+        event.sender.send('files-uploaded-now-reload', {
+            filePaths: filePaths.map((fp) =>
+                path.join(destinationFolder, path.basename(fp))
+            )
+        })
     } catch (error) {
-        console.error('Error uploading files:', error);
-        // Handle error appropriately (send error to renderer process or log)
+        console.error('Error uploading files:', error)
+            // Handle error appropriately (send error to renderer process or log)
     }
-});
+})
 
-function copyFile(source, target) {
-    return new Promise((resolve, reject) => {
-        const rd = fs.createReadStream(source)
-        const wr = fs.createWriteStream(target)
 
-        rd.on('error', reject)
-        wr.on('error', reject)
-        wr.on('finish', resolve)
+// Function to process media file using ffmpeg
+async function processMediaFile(inputFilePath, outputFilePath) {
+    try {
+        // Check if the output file already exists
+        try {
+            await fs.promises.access(outputFilePath)
+            console.log(`Output file already exists: ${outputFilePath}`)
+            return // Skip processing if file exists
+        } catch (err) {
+            // Output file does not exist, continue with ffmpeg
+        }
 
-        rd.pipe(wr)
-    })
+        // Construct the PowerShell script to execute ffmpeg
+        const psScript = `ffmpeg -i "${inputFilePath}" -metadata title="PT Communication Systems" -c copy "${outputFilePath}"`
+        console.log(`Executing PowerShell script: ${psScript}`)
+
+        // Execute the PowerShell script
+        const ps = spawn('powershell.exe', ['-NoProfile', '-Command', psScript])
+
+        // Return a promise to await completion of ffmpeg
+        return new Promise((resolve, reject) => {
+            ps.on('close', async(code) => {
+                console.log(`PowerShell script exited with code ${code}`)
+                if (code === 0) {
+                    try {
+                        await fs.promises.access(outputFilePath)
+                        console.log(
+                            'Output file successfully created.', outputFilePath)
+                        resolve() // Resolve the promise on success
+                    } catch (err) {
+                        console.error('Output file was not created.')
+                        reject(err) // Reject the promise on failure
+                    }
+                } else {
+                    console.error('PowerShell script failed.')
+                    reject(new Error('PowerShell script failed.'))
+                }
+            })
+
+            ps.on('error', (err) => {
+                console.error('Error executing PowerShell script:', err)
+                reject(err) // Reject the promise on error
+            })
+        })
+    } catch (err) {
+        console.error(`Error processing media file: ${err.message}`)
+        throw err // Throw the error to be caught in the calling function
+    }
 }
 
 
-// Function to write file paths to CONFIG.SYS
+// Sample implementation of copyFile and writeToFile functions (for completeness)
+async function copyFile(source, destination) {
+    await fs.promises.copyFile(source, destination)
+}
+
 // Function to write file paths to CONFIG.SYS
 async function writeToFile(filePaths, destinationFolder) {
     try {
@@ -309,20 +403,20 @@ async function writeToFile(filePaths, destinationFolder) {
             const absolutePath = path.join(destinationFolder, path.basename(fp))
             const relativePath = path.join('/', absolutePath).replace(/\\/g, '/')
             const stats = await new Promise((resolve, reject) => {
-                fs.stat(fp, (err, stats) => {
-                    if (err) {
-                        reject(err)
-                    } else {
-                        resolve(stats)
-                    }
+                    fs.stat(fp, (err, stats) => {
+                        if (err) {
+                            reject(err)
+                        } else {
+                            resolve(stats)
+                        }
+                    })
                 })
-            })
-            const crc = await calculateFileCRC32(fp)
+                // const crc = await calculateFileCRC32(fp)
             return {
                 absolutePaths: absolutePath,
                 path: relativePath,
                 size: stats.size,
-                crc: crc.toString(16).toUpperCase().padStart(8, '0')
+                crc: 'mm'.toUpperCase().padStart(8)
             }
         })
 
@@ -379,6 +473,12 @@ async function calculateFileCRC32(filePath) {
         })
     })
 }
+
+ipcMain.on('uploadButton-sending-request', async(event) => {
+    console.log("hello upload button ")
+    console.log(local_filepath)
+    console.log('hello upload button ')
+})
 
 
 async function extractFilenamePaths() {
