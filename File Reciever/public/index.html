@@ -1,0 +1,36 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File and Folder Upload</title>
+</head>
+
+<body>
+    <h1>File and Folder Upload</h1>
+    <form id="uploadForm" action="/upload" method="POST" enctype="multipart/form-data">
+        <!-- Input for files -->
+        <input type="file" name="files" id="filesInput" multiple required><br><br>
+
+        <!-- Input for folders (hidden and triggered by button) -->
+        <input type="file" name="folders" id="foldersInput" webkitdirectory directory multiple style="display:none;"><br><br>
+
+        <!-- Button to trigger folder selection -->
+        <label for="foldersBtn">Upload Folders:</label>
+        <input type="button" id="foldersBtn" value="Choose Folders">
+
+        <!-- Submit button -->
+        <button type="submit">Upload</button>
+    </form>
+
+    <script>
+        // JavaScript to trigger folder input selection
+        document.getElementById('foldersBtn').addEventListener('click', function() {
+            document.getElementById('foldersInput').click();
+        });
+    </script>
+</body>
+
+</html>
