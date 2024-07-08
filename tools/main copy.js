@@ -81,13 +81,11 @@ async function createMainWindow(ipList) {
 
 app.on('ready', async() => {
     try {
-        await processXmlData();
-        await ffmpegScript.setupFfmpeg();
-
+        await Promise.all([processXmlData(), ffmpegScript.setupFfmpeg()])
     } catch (error) {
-        console.error('Failed to create main window:', error);
+        console.error('Failed to create main window:', error)
     }
-});
+})
 
 
 
