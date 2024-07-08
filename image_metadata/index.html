@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Metadata</title>
+</head>
+
+<body>
+    <h1>Select a file to set metadata</h1>
+    <input type="file" id="fileInput" />
+    <button id="submitBtn">Submit</button>
+
+    <script>
+        const {
+            ipcRenderer
+        } = require('electron');
+
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput.files.length > 0) {
+                const filePath = fileInput.files[0].path;
+                ipcRenderer.send('file-selected', filePath);
+            } else {
+                alert('Please select a file first.');
+            }
+        });
+    </script>
+</body>
+
+</html>
