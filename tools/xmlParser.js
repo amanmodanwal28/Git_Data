@@ -12,7 +12,11 @@ const xmlFilePath = './Iot_Config.xml';
 ///    for create  the directory and   pass the data in main.js   ////////////////////////////////////////////////////
 
 // Define the base path where the directories should be created
+<<<<<<< HEAD
 const basePath = path.join(__dirname, 'content');
+=======
+let basePath = path.join(__dirname, 'content');
+>>>>>>> d7480ebcd6b59652bcbe89e1472972c0842d7b7a
 
 // Arrays to store folder names
 const folderNames = [];
@@ -20,9 +24,16 @@ const subFolderNames = {};
 const subSubFolderNames = {};
 
 const createDirectories = (dirPath) => {
+<<<<<<< HEAD
     if (!fs.existsSync(dirPath)) {
         fs.mkdirSync(dirPath, { recursive: true });
         console.log(`Directory created: ${dirPath}`);
+=======
+    // console.log(typeof dirPath)
+    if (!fs.existsSync(dirPath)) {
+        fs.mkdirSync(dirPath, { recursive: true });
+        // console.log(`Directory created: ${dirPath}`);
+>>>>>>> d7480ebcd6b59652bcbe89e1472972c0842d7b7a
     } else {
         // console.log(`Directory already exists: ${dirPath}`);
     }
@@ -43,7 +54,11 @@ const parseXMLAndCreateDirectories = (xml) => {
                     dataStructure[key].forEach(element => {
                         const folderName = element['$'].folder_name;
                         folderNames.push(folderName);
+<<<<<<< HEAD
                         const folderUrl = path.join(basePath, folderName);
+=======
+                        const folderUrl = path.join(basePath, folderName)
+>>>>>>> d7480ebcd6b59652bcbe89e1472972c0842d7b7a
                         createDirectories(folderUrl);
 
                         if (!subFolderNames[folderName]) {
@@ -84,6 +99,7 @@ const parseXMLAndCreateDirectories = (xml) => {
     });
 };
 
+<<<<<<< HEAD
 const createDatabaseDirectories = () => {
     return new Promise((resolve, reject) => {
         fs.readFile(xmlFilePath, 'utf8', (err, xmlData) => {
@@ -99,6 +115,25 @@ const createDatabaseDirectories = () => {
             } else {
                 // Create the main "content" directory
                 createDirectories(basePath);
+=======
+const createDatabaseDirectories = (CreateMainFolder) => {
+    basePath = CreateMainFolder;
+
+    return new Promise((resolve, reject) => {
+        fs.readFile(xmlFilePath, 'utf8', (err, xmlData) => {
+            if (err) {
+                console.log(`Error reading XML file: ${err}`);
+                reject(err);
+                return;
+            }
+            // Check if the main "content" directory exists
+            if (fs.existsSync(CreateMainFolder)) {
+                console.log(`Directory already exists: ${basePath}`)
+            } else {
+                // Create the main "content" directory
+                console.log(`Directory Created ${basePath}`)
+                createDirectories(CreateMainFolder)
+>>>>>>> d7480ebcd6b59652bcbe89e1472972c0842d7b7a
             }
 
             // Parse XML and create directories
