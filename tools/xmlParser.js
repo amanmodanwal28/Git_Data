@@ -4,12 +4,16 @@ const xml2js = require('xml2js');
 const xmlFilePath = './Iot_Config.xml';
 
 
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-///    for create  the directory and   pass the data in main.js   ////////////////////////////////////////////////////
+const util = require('util')
+    // Promisify fs functions
+const fsAccess = util.promisify(fs.access)
+const fsReadFile = util.promisify(fs.readFile)
+const fsWriteFile = util.promisify(fs.writeFile)
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///    for create  the directory and   pass the data in main.js   ////////////////////////////////////////////////////
 
 // Define the base path where the directories should be created
 let basePath = path.join(__dirname, 'content');
@@ -89,26 +93,31 @@ const createDatabaseDirectories = (CreateMainFolder) => {
     basePath = CreateMainFolder;
 
     return new Promise((resolve, reject) => {
-        fs.readFile(xmlFilePath, 'utf8', (err, xmlData) => {
+        fs.readFile(xmlFilePath, 'utf8', async(err, xmlData) => {
             if (err) {
-                console.log(`Error reading XML file: ${err}`);
-                reject(err);
-                return;
+                console.log(`Error reading XML file: ${err}`)
+                reject(err)
+                return
             }
             // Check if the main "content" directory exists
-            if (fs.existsSync(CreateMainFolder)) {
+            try {
+                await fsAccess(basePath)
                 console.log(`Directory already exists: ${basePath}`)
-            } else {
-                // Create the main "content" directory
-                console.log(`Directory Created ${basePath}`)
-                createDirectories(CreateMainFolder)
+            } catch {
+                console.log(`Main directory does not exist: ${basePath}`)
+                throw new Error(`Main directory does not exist: ${basePath}`)
             }
 
-            // Parse XML and create directories
-            parseXMLAndCreateDirectories(xmlData).then(resolve).catch(reject);
+            // Create the INDEX.SYS file
+            const indexSysPath = path.join(basePath, 'INDEX.SYS')
+            await fsWriteFile(indexSysPath, '') // Adjust content as needed
+            console.log(`INDEX.SYS file created at: ${indexSysPath}`)
+                // Parse XML and create directories
+            parseXMLAndCreateDirectories(xmlData).then(resolve).catch(reject)
         });
     });
 };
+
 
 
 

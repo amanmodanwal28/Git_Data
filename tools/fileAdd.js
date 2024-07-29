@@ -8,7 +8,7 @@ const { performance } = require('perf_hooks')
 const crc = require('crc')
 const ProgressBar = require('electron-progressbar')
     // Function to process media file using ffmpeg
-let ConfigFilePath = './content/CONFIG.SYS'
+let ConfigFilePath = './content/INDEX.SYS'
 let CreateMainFolder = "";
 let MainFolderName;
 const musicFileExtensions = [
@@ -209,7 +209,7 @@ const copyFile = async(source, destination) => {
 const getMainPath = async(CreateMainFolder) => {
     CreateMainFolder = CreateMainFolder
     MainFolderName = path.basename(CreateMainFolder)
-    ConfigFilePath = path.join(CreateMainFolder, 'CONFIG.SYS')
+    ConfigFilePath = path.join(CreateMainFolder, 'INDEX.SYS')
         // console.log(`getMainPath =>  ${CreateMainFolder}  get MainFolderName ${MainFolderName}`)
         // console.log(`ConfigFilePath =>  ${ConfigFilePath} `)
 }
@@ -292,7 +292,7 @@ const writeToFile = async(filesToWrite, destinationFolder) => {
         .padStart(10)}   ${item.path}\n`
         })
 
-        // Append to CONFIG.SYS
+        // Append to INDEX.SYS
         await new Promise((resolve, reject) => {
             fs.writeFile(ConfigFilePath, formattedContent, { flag: 'a' }, (err) => {
                 if (err) {
@@ -303,10 +303,10 @@ const writeToFile = async(filesToWrite, destinationFolder) => {
             })
         })
 
-        console.log('Data appended to CONFIG.SYS', ConfigFilePath)
+        console.log('Data appended to INDEX.SYS', ConfigFilePath)
 
     } catch (error) {
-        console.error('Error writing to CONFIG.SYS:', error)
+        console.error('Error writing to INDEX.SYS:', error)
         throw error // Propagate the error upwards
     }
 }
@@ -357,7 +357,7 @@ async function updateConfigFile(deletedFiles) {
         })
         const lines = data.split('\n')
 
-        // Convert deleted files paths to match the format in CONFIG.SYS
+        // Convert deleted files paths to match the format in INDEX.SYS
         // const relativePaths = deletedFiles.map((deleteFilePath) =>
         //     path.join('/', deleteFilePath).replace(/\\/g, '/')
         // )
@@ -381,16 +381,16 @@ async function updateConfigFile(deletedFiles) {
             return true
         })
 
-        // Write the updated lines back to CONFIG.SYS
+        // Write the updated lines back to INDEX.SYS
         await fs.promises.writeFile(ConfigFilePath, updatedLines.join('\n'), {
             encoding: 'utf8'
         })
-        console.log('CONFIG.SYS updated successfully', ConfigFilePath)
+        console.log('INDEX.SYS updated successfully', ConfigFilePath)
     } catch (error) {
         if (error.code === 'ENOENT') {
-            console.warn('CONFIG.SYS file does not exist:', ConfigFilePath)
+            console.warn('INDEX.SYS file does not exist:', ConfigFilePath)
         } else {
-            console.error('Error updating CONFIG.SYS:', error.message)
+            console.error('Error updating INDEX.SYS:', error.message)
             throw error // Re-throw unexpected errors for further handling
         }
     }

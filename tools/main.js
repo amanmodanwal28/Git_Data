@@ -143,7 +143,10 @@ async function createMainWindow(ipList) {
                                             console.log('New folder created at:', CreateMainFolder)
                                             getMainPath(CreateMainFolder)
                                             await createDatabaseDirectories(CreateMainFolder)
-                                            mainWindow.webContents.send('click-button')
+                                            mainWindow.webContents.send(
+                                                'create-database-Dir',
+                                                CreateMainFolder
+                                            )
 
                                         }
                                     })
@@ -156,7 +159,7 @@ async function createMainWindow(ipList) {
                     {
                         label: 'Open',
                         click: async() => {
-                            mainWindow.webContents.send('click-button')
+                            mainWindow.webContents.send('click-database-button')
                         }
                     },
                     { type: 'separator' },
@@ -283,29 +286,93 @@ ipcMain.handle('choose-contentdir', async() => {
 
 async function create_Database(event, DatabaseFolder) {
     count++
-    // if (count == '1') {
+
     try {
-        // console.log('Database button clicked');
-        // console.log('Database Created ');
         CreateMainFolder = DatabaseFolder
         getMainPath(CreateMainFolder)
         selectedfilePathDir = CreateMainFolder
-        event.sender.send('local-path', path.basename(CreateMainFolder))
-        await createDatabaseDirectories(String(CreateMainFolder))
+
         console.log('Database open ', CreateMainFolder)
-        const { folders } = await listFilesAndFolders(CreateMainFolder)
-        mainWindow.webContents.send('database-created', {
-            folders,
-            count,
-            CreateMainFolder
-        })
+
+        // Paths for all folders and INDEX.SYS
+        const folderPaths = main_folders.map((folder) =>
+            path.join(CreateMainFolder, folder)
+        )
+        const indexFilePath = path.join(CreateMainFolder, 'INDEX.SYS')
+
+        // Check if all folders and the INDEX.SYS file exist
+        const checks = await Promise.all([
+            ...folderPaths.map(
+                (folderPath) =>
+                new Promise((resolve) => {
+                    fs.access(folderPath, (err) => {
+                        if (err) {
+                            // console.log(`Folder missing: ${folderPath}`)
+                            resolve(false) // Resolve with false if folder is missing
+                        } else {
+                            // console.log(`Folder exists: ${folderPath}`)
+                            resolve(true) // Resolve with true if folder exists
+                        }
+                    })
+                })
+            ),
+            new Promise((resolve) => {
+                fs.access(indexFilePath, (err) => {
+                    if (err) {
+                        console.log(`File missing: ${indexFilePath}`)
+                        resolve(false) // Resolve with false if file is missing
+                    } else {
+                        // console.log(`File exists: ${indexFilePath}`)
+                        resolve(true) // Resolve with true if file exists
+                    }
+                })
+            })
+        ])
+
+        // Extract results from checks
+        const folderChecks = checks.slice(0, main_folders.length)
+        const indexFileExists = checks[main_folders.length]
+            // Check if all folders exist
+        const allFoldersExist = folderChecks.every((exists) => exists)
+        const allConditionsMet = allFoldersExist && indexFileExists
+
+        // console.log('All folders exist:', allFoldersExist)
+        // console.log('INDEX.SYS exists:', indexFileExists)
+
+        if (allConditionsMet) {
+            // Proceed to list files and folders if all folders and the file exist
+            event.sender.send('local-path', path.basename(CreateMainFolder))
+
+            const { folders } = await listFilesAndFolders(CreateMainFolder)
+            mainWindow.webContents.send('database-created', {
+                folders,
+                count,
+                CreateMainFolder
+            })
+
+            event.sender.send('choose-mainfolder-update', CreateMainFolder)
+
+            // console.log('Folders listed:', folders)
+        } else {
+            // Show dialog if any folder or the file is missing
+            dialog.showMessageBox(mainWindow, {
+                    type: 'error',
+                    title: 'Path Error',
+                    message: 'Wrong DataBase Select.',
+                    buttons: ['OK'],
+                    alwaysOnTop: true
+                })
+                //  window reload
+            mainWindow.reload()
+            console.log(
+                'One or more required directories or INDEX.SYS file are missing in the database folder.'
+            )
+        }
+
         console.log(count)
     } catch (error) {
-        console.error('Error creating database:')
+        console.error('Error creating database:', error)
     }
-    // } else {
-    //     console.log('database already created')
-    // }
 }
 
 ipcMain.on('create-database', async(event, DatabaseFolder) => {
@@ -576,7 +643,7 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
         if (filesToWrite.length > 0) {
             await writeToFile(filesToWrite, destinationFolder)
         } else {
-            console.log('All files already exist, skipping write to CONFIG.SYS')
+            console.log('All files already exist, skipping write to INDEX.SYS')
         }
 
         event.sender.send('files-uploaded-now-reload', {
@@ -632,9 +699,21 @@ async function checkFileSize() {
     // console.log(`Processed ${processedFiles} out of ${totalFiles} files.`)
 }
 
+// Handle SFTP connection errors
+ipcMain.on('sftp-connection-error', (event, errorMessage) => {
+    dialog.showMessageBox({
+        type: 'error',
+        title: 'SFTP Connection Error',
+        message: `An error occurred while connecting to the SFTP server:\n${errorMessage}`,
+        buttons: ['OK']
+    });
+});
+
 ipcMain.on('uploadButton-sending-request', async(event) => {
     console.log('hello upload button')
     let local, remote
+    let sftp
+    let existingFileCount = 0 // Counter for existing files
 
     try {
         if (!CreateMainFolder) {
@@ -646,8 +725,10 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
             })
             return
         }
-        ConfigFilePath = path.join(CreateMainFolder, 'CONFIG.SYS')
-            // Check if the configuration file exists
+
+        ConfigFilePath = path.join(CreateMainFolder, 'INDEX.SYS')
+
+        // Check if the configuration file exists
         try {
             await fs.promises.access(ConfigFilePath)
         } catch (err) {
@@ -687,7 +768,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                 resizable: false,
                 maximizable: true,
                 closable: true,
-                icon: './assets/pps_logo.ico', // path to the icon file
+                icon: './assets/pps_logo.ico',
                 backgroundColor: '#FAF6F0'
             }
         })
@@ -708,7 +789,6 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
             completedFiles++
             progressBar.value = completedFiles
 
-            // If all files are processed, close the progress bar
             if (completedFiles === totalFiles) {
                 progressBar.setCompleted()
             }
@@ -717,7 +797,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
         const uploadTasks = activeSelectedIPs.map(async(ip) => {
             try {
                 const conn = await connection(ip)
-                const sftp = await new Promise((resolve, reject) => {
+                sftp = await new Promise((resolve, reject) => {
                     conn.sftp((err, sftp) => {
                         if (err) {
                             conn.end()
@@ -731,7 +811,6 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                 for (let i = 0; i < paths.localPath.length; i++) {
                     try {
                         local = path.join(CreateMainFolder, paths.localPath[i])
-
                         remote = '/usr/share/apache2/htdocs/content' + paths.remotePath[i]
                         const size = paths.textFileSize[i]
                         const expectedCrc = paths.textCrc[i]
@@ -757,6 +836,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                             console.log(
                                 `File already exists on ${ip} at ${remote}, skipping upload.`
                             )
+                            existingFileCount++ // Increment the count for existing files
                         }
                         updateProgressBar()
                     } catch (err) {
@@ -766,7 +846,6 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                                 path.basename(PathParsing.dir),
                                 PathParsing.base
                             )
-                            console.log(errPath)
                             await dialog.showMessageBox(mainWindow, {
                                 type: 'error',
                                 title: 'File Not Found',
@@ -778,26 +857,39 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                                 `Error uploading file to ${ip} from ${local} to ${remote}:`,
                                 err
                             )
-
                             await dialog.showMessageBox(mainWindow, {
                                 type: 'error',
-                                title: 'File Transfer error',
+                                title: 'File Transfer Error',
                                 message: `Error uploading file`,
                                 buttons: ['OK']
                             })
+                            if (progressBar) progressBar.close()
+                            activeSelectedIPs = []
                         }
                         updateProgressBar()
                     }
                 }
+
                 await uploadFile(
                     sftp,
                     ConfigFilePath,
-                    '/usr/share/apache2/htdocs/content/database/CONFIG.SYS'
+                    '/usr/share/apache2/htdocs/content/database/INDEX.SYS'
                 )
                 conn.end()
+                if (progressBar) progressBar.close()
             } catch (err) {
                 console.error(`Error with connection or file transfer to ${ip}:`, err)
+                await dialog.showMessageBox(mainWindow, {
+                    type: 'error',
+                    title: 'Connection Loss',
+                    message: `Connection to ${ip} lost. Please check the connection and try again.`,
+                    buttons: ['OK']
+                })
+                if (progressBar) progressBar.close() // Close the progress bar on connection error
             }
+
+            // Ensure progress bar is updated even if there's an error
+            updateProgressBar()
         })
 
         await Promise.all(uploadTasks)
@@ -806,12 +898,25 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
             event.sender.send('alert', 'Error code 12345')
         }
 
-        // activeSelectedIPs = []
+        // Show a single popup if any files already existed
+        if (existingFileCount > 0) {
+            await dialog.showMessageBox(mainWindow, {
+                type: 'warning',
+                title: 'Skip Files',
+                message: `The Destination already has files ${existingFileCount} out of: ${totalFiles}.`,
+                buttons: ['OK']
+            })
+        }
+
+        activeSelectedIPs = []
     } catch (err) {
         console.error('Error:', err)
+    } finally {
+        if (progressBar && !progressBar.completed) {
+            progressBar.setCompleted() // Ensure progress bar is closed
+        }
     }
 })
-
 async function readConfigFile(ConfigFilePath) {
     try {
         const data = await fs.promises.readFile(ConfigFilePath, {
@@ -854,7 +959,7 @@ async function readConfigFile(ConfigFilePath) {
 
         return { localPath, remotePath, textFileSize, textCrc } // Return both arrays as an object
     } catch (err) {
-        console.error('Error reading or processing CONFIG.SYS:', err)
+        console.error('Error reading or processing INDEX.SYS:', err)
         throw err // Re-throw the error to be handled by the caller
     }
 }
@@ -879,7 +984,7 @@ ipcMain.on('delete-request', async(event, filePaths) => {
         try {
             await updateConfigFile(filePaths)
         } catch (err) {
-            console.error('Error updating CONFIG.SYS:', err.message)
+            console.error('Error updating INDEX.SYS:', err.message)
             success = false
         }
 
