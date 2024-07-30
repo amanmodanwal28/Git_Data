@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PPS</title>
+    <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body>
+    <div class="container">
+        <div class="ip-list">
+            <h2 id="heading">List of IPs</h2>
+            <div class="form-divider"></div>
+            <form id="ipForm"></form>
+        </div>
+        <div class="divider"></div>
+        <div class="folder-list">
+            <h2 id="heading">List of Folders</h2>
+            <div class="control-buttons">
+                <div class="btns">
+                    <button class="upload-button" id="database">Database</button>
+                </div>
+                <button class="upload-button" id="uploadButton">Upload</button>
+            </div>
+            <h2 id="local-path"></h2>
+            <div class="form-divider"></div>
+            <form class="folder-form"></form>
+            <div class="form-divider"></div>
+            <div class="sub-folder-form">
+                <div class="subfolder-list"></div>
+
+                <div class="subfile-form">
+                    <div class="subfile-list"></div>
+                </div>
+            </div>
+            <div class="subsub-folder-form">
+                <div class="subsubfolder-list"></div>
+                <div class="subsubfile-form">
+                    <div class="subsubfile-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const {
+            ipcRenderer,
+            remote
+        } = require('electron')
+
+        const path = require('path')
+        const fs = require('fs').promises
+        let selectedMainFolder = ''
+        let selectedSubFolder = ''
+        let selectedfilePathDir = ''
+        let renderID = ''
+        let controlKeyPressed = false // Track whether the control key is pressed
+        let selectedIPs = [] // Initialize an empty array to store selected IPs
+
+        ipcRenderer.on('initial-data', (event, data) => {
+            updateIpStatus(data.ipList)
+        })
+
+        ipcRenderer.on('update-ip-status', (event, {
+            IPs_results
+        }) => {
+            selectedIPs = []
+            updateIpStatus(IPs_results)
+        })
+
+        function updateIpStatus(ipList) {
+            const ipForm = document.getElementById('ipForm')
+            ipForm.innerHTML = '' // Clear the existing content
+
+            ipList.forEach((ip) => {
+                const ipBox = document.createElement('div')
+                ipBox.classList.add('ip-box')
+
+                const statusIcon = ip.status === 'active' ? '✔️' : '❌'
+                const isDisabled = ip.status === 'inactive'
+
+                ipBox.innerHTML = `
+            <div>
+                <input type="checkbox" id="${ip.ip}" name="ip" value="${
+            ip.ip
+          }" ${isDisabled ? 'disabled' : ''}>
+                <label for="${ip.ip}">${ip.aliance_name}</label>
+            </div>
+            <div>${statusIcon}</div>`
+                ipForm.appendChild(ipBox)
+
+                const checkbox = ipBox.querySelector('input[type="checkbox"]')
+                checkbox.addEventListener('click', (event) => {
+                    const selectedIP = event.target.value
+
+                    if (!isDisabled) {
+                        if (event.target.checked) {
+                            // Add IP to the array if checked
+                            selectedIPs.push(selectedIP)
+                        } else {
+                            // Remove IP from the array if unchecked
+                            const index = selectedIPs.indexOf(selectedIP)
+                            if (index > -1) {
+                                selectedIPs.splice(index, 1)
+                            }
+                        }
+
+                        ipcRenderer.send('selected-ips', selectedIPs)
+                        console.log(`Selected IPs: ${selectedIPs}`)
+
+                        document.querySelectorAll('.ip-box').forEach((box) => {
+                            box.classList.remove('selected')
+                        })
+                        ipBox.classList.add('selected')
+                    }
+                })
+            })
+        }
+
+        ipcRenderer.on('database-created', (event, data) => {
+            const mainFolderList = data.folders
+            console.log('123123')
+                // console.log(data.count)
+            const name = path.basename(data.CreateMainFolder)
+            const folderForm = document.querySelector('.folder-form')
+            folderForm.innerHTML = ''
+                //   26/07/2024
+            const localpathBanner = document.getElementById('local-path')
+            localpathBanner.innerText = `🖥️ > ${name}\\`
+            mainFolderList.forEach((folder) => {
+                const folderBox = document.createElement('div')
+
+                folderBox.classList.add('folder-box')
+                folderBox.innerHTML = `
+                    <div>
+                        <label for="folder">${folder}</label>
+                    </div>
+                `
+                folderForm.appendChild(folderBox)
+
+                folderBox.addEventListener('click', () => {
+                    renderID = 'folder-contents'
+                    ipcRenderer.send('selected-folder', folder, renderID)
+                    console.log(`Selected Folder: ${folder} ${renderID}`)
+                    selectedMainFolder = folder
+
+                    document.querySelectorAll('.folder-box').forEach((box) => {
+                        box.classList.remove('selected')
+                    })
+                    folderBox.classList.add('selected')
+                })
+            })
+            console.log('13')
+        })
+
+        ipcRenderer.on('folder-contents', (event, data) => {
+            const {
+                folders,
+                regularFiles
+            } = data
+
+            const subFolderList = document.querySelector('.subfolder-list')
+            subFolderList.innerHTML = '' // Clear previous subfolders
+
+            const subFileForm = document.querySelector('.subfile-form')
+            subFileForm.innerHTML = `
+            <div class="file-input-container">
+                <button class="upload-button" id="Select-All">Select All</button>
+            <button class="upload-button" id="delete">delete</button>
+                <input type="file" id="fileInput" class="file-input" multiple/>
+                <label for="fileInput" class="file-label">Add files</label>
+            </div>
+
+            <div class="subfile-list"></div>
+            `
+
+            const subFileList = subFileForm.querySelector('.subfile-list')
+            const deleteButton2 = subFileForm.querySelector('#delete')
+            const SelectAllBtn = subFileForm.querySelector('#Select-All')
+            subFileList.innerHTML = '' // Clear previous files
+
+            folders.forEach((folder) => {
+                const subFolderBox = document.createElement('div')
+                subFolderBox.classList.add('folder-box')
+                subFolderBox.innerHTML = `
+                    <div>
+                        <label for="folder">${folder}</label>
+                    </div>
+                `
+                subFolderList.appendChild(subFolderBox)
+
+                subFolderBox.addEventListener('click', () => {
+                    const fullFolderPath = path.join(selectedMainFolder, folder)
+                    selectedSubFolder = fullFolderPath
+                    renderID = 'subfolder-contents'
+                    ipcRenderer.send('selected-subfolder', fullFolderPath, renderID)
+                    console.log(`Selected Subfolder: ${fullFolderPath} ${renderID}`)
+                    document
+                        .querySelectorAll('.subfolder-list .folder-box')
+                        .forEach((box) => {
+                            box.classList.remove('selected')
+                        })
+                    subFolderBox.classList.add('selected')
+
+                    // Add form-divider after the subfolder list is populated, if not already added
+                    if (!subFolderList.nextElementSibling ||
+                        !subFolderList.nextElementSibling.classList.contains(
+                            'form-divider'
+                        )
+                    ) {
+                        subFolderList.insertAdjacentHTML(
+                            'afterend',
+                            '<div class="form-divider"></div>'
+                        )
+                    }
+
+                    subFileForm.innerHTML = ''
+                })
+            })
+
+            // Event listener for subfile input
+            document
+                .getElementById('fileInput')
+                .addEventListener('change', RequestFileUpload)
+
+            RenderFileList(regularFiles, subFileList, deleteButton2, SelectAllBtn)
+                // Clear subsubfolder-list and subsubfile-list when changing folders
+            const subSubFolderList = document.querySelector('.subsubfolder-list')
+            subSubFolderList.innerHTML = '' // Clear previous sub-subfolders
+
+            const subSubFileList = document.querySelector('.subsubfile-form')
+            subSubFileList.innerHTML = '' // Clear previous sub-subfolder files
+        })
+
+        ipcRenderer.on('subfolder-contents', (event, data) => {
+            const {
+                folders,
+                regularFiles
+            } = data
+
+            const subSubFolderList = document.querySelector('.subsubfolder-list')
+            subSubFolderList.innerHTML = '' // Clear previous sub-subfolders
+
+            const subsubFileForm = document.querySelector('.subsubfile-form')
+            subsubFileForm.innerHTML = `
+            <div class="file-input-container">
+                <button class="upload-button" id="Select-All">Select All</button>
+                <button class="upload-button" id="delete">delete</button>
+                <input type="file" id="fileInput" class="file-input" multiple/>
+                <label for="fileInput" class="file-label">Add files</label>
+            </div>
+            <div class="subsubfile-list"></div>
+            `
+
+            const subSubFileList = document.querySelector('.subsubfile-list')
+            const deleteButton2 = subsubFileForm.querySelector('#delete')
+            const SelectAllBtn = subsubFileForm.querySelector('#Select-All')
+            subSubFileList.innerHTML = '' // Clear previous sub-subfolder files
+
+            folders.forEach((folder) => {
+                const subFolderBox = document.createElement('div')
+                subFolderBox.classList.add('folder-box')
+                subFolderBox.innerHTML = `
+                    <div>
+                        <label for="folder">${folder}</label>
+                    </div>
+                `
+                subSubFolderList.appendChild(subFolderBox)
+
+                subFolderBox.addEventListener('click', () => {
+                    const fullFolderPath = path.join(selectedSubFolder, folder)
+                    renderID = 'subsubfolder-files'
+
+                    ipcRenderer.send('selected-subsubfolder', fullFolderPath, renderID)
+                    console.log(`Selected Sub-Subfolder: ${fullFolderPath}`)
+
+                    document
+                        .querySelectorAll('.subsubfolder-list .folder-box')
+                        .forEach((box) => {
+                            box.classList.remove('selected')
+                        })
+                    subFolderBox.classList.add('selected')
+
+                    subSubFileList.innerHTML = ''
+                })
+            })
+
+            // Event listener for subfile input
+            document
+                .getElementById('fileInput')
+                .addEventListener('change', RequestFileUpload)
+
+            RenderFileList(
+                regularFiles,
+                subSubFileList,
+                deleteButton2,
+                SelectAllBtn
+            )
+
+            // Add form-divider after the subfolder list is populated, if not already added
+            if (!subSubFolderList.nextElementSibling ||
+                !subSubFolderList.nextElementSibling.classList.contains(
+                    'form-divider'
+                )
+            ) {
+                subSubFolderList.insertAdjacentHTML(
+                    'afterend',
+                    '<div class="form-divider"></div>'
+                )
+            }
+        })
+
+        ipcRenderer.on('subsubfolder-files', (event, data) => {
+            const {
+                folders,
+                regularFiles
+            } = data
+            console.log(regularFiles)
+            const subSubFileList = document.querySelector('.subsubfile-list')
+            subSubFileList.innerHTML = ''
+
+            // Ensure deleteButton2 and SelectAllBtn are defined
+            const subsubFileForm = document.querySelector('.subsubfile-form')
+            const deleteButton2 = subsubFileForm.querySelector('#delete')
+            const SelectAllBtn = subsubFileForm.querySelector('#Select-All')
+
+            RenderFileList(
+                regularFiles,
+                subSubFileList,
+                deleteButton2,
+                SelectAllBtn
+            )
+        })
+
+        function RenderFileList(
+            regularFiles,
+            fileListForm,
+            deleteButton2,
+            SelectAllBtn
+        ) {
+            if (regularFiles.length === 0) {
+                if (deleteButton2) {
+                    deleteButton2.disabled = true
+                    deleteButton2.classList.add('delete-button')
+                    deleteButton2.remove()
+                }
+                return // Exit function if no files exist
+            }
+
+            regularFiles.forEach((file) => {
+                // Disable the delete button initially and set its background color to brown
+                if (deleteButton2) {
+                    deleteButton2.disabled = true
+                    deleteButton2.classList.add('delete-button')
+                }
+                const fileItem = document.createElement('div')
+                fileItem.classList.add('file-list-container')
+
+                const file_checkbox = document.createElement('input')
+                file_checkbox.classList.add('file-list-container-checkbox')
+                file_checkbox.type = 'checkbox'
+                file_checkbox.value = file
+                file_checkbox.id = 'file_checkbox_id'
+                fileItem.appendChild(file_checkbox)
+                deleteFileSelection(file_checkbox, file)
+                file_checkbox.style.display = 'block'
+
+                // Create the file name element
+                const fileName = document.createElement('div')
+                fileName.classList.add('file-list-data-Container')
+
+                // Determine file type based on extension
+                const fileExt = file.split('.').pop().toLowerCase() // Get file extension
+                let iconUrl = ''
+
+                if (
+                    [
+                        'mp3',
+                        'wav',
+                        'ogg',
+                        'pcm',
+                        'aif',
+                        'aiff',
+                        'aac',
+                        'wma',
+                        'flac',
+                        'alac',
+                        'opus',
+                        'dts',
+                        'ac3',
+                        'amr',
+                        'mid'
+                    ].includes(fileExt)
+                ) {
+                    iconUrl = './assets/music.png' // Replace with actual path to music icon
+                } else if (
+                    [
+                        'mp4',
+                        'avi',
+                        'mkv',
+                        'mov',
+                        'wmv',
+                        'flv',
+                        'webm',
+                        'mpeg',
+                        'mpg',
+                        'm4v',
+                        '3gp',
+                        'ogv',
+                        'ts',
+                        'vob'
+                    ].includes(fileExt)
+                ) {
+                    iconUrl = './assets/video.png' // Replace with actual path to video icon
+                } else if (
+                    [
+                        'jpg',
+                        'jpeg',
+                        'png',
+                        'gif',
+                        'bmp',
+                        'tiff',
+                        'tif',
+                        'svg',
+                        'webp',
+                        'heic',
+                        'ico',
+                        'avif',
+                        'psd',
+                        'raw'
+                    ].includes(fileExt)
+                ) {
+                    iconUrl = './assets/images.png' // Replace with actual path to image icon
+                } else {
+                    iconUrl = './assets/default.png'
+                }
+
+                // Create image element and append before file name
+                if (iconUrl !== '') {
+                    const iconImg = document.createElement('img')
+                    iconImg.classList.add('fileiconImg')
+                    iconImg.src = iconUrl
+                    iconImg.classList.add('file-icon')
+                    fileName.appendChild(iconImg)
+                }
+
+                const FileDataSpan = document.createElement('div')
+                FileDataSpan.classList.add('FileDataSpan')
+                FileDataSpan.innerText = file
+                fileName.appendChild(FileDataSpan)
+
+                fileItem.appendChild(fileName)
+                deleteFileSelection(fileName, file)
+
+                fileListForm.appendChild(fileItem)
+
+                if (deleteButton2) {
+                    deleteButton2.addEventListener('click', Comfirmation_Request)
+                }
+
+                if (SelectAllBtn) {
+                    SelectAllBtn.addEventListener('click', () => {
+                        selectAllFiles()
+                        const checkboxes = document.querySelectorAll(
+                            '.file-list-container-checkbox'
+                        )
+                        checkboxes.forEach((checkbox) => {
+                            checkbox.checked = true
+                        })
+                        file_checkbox.style.display = 'none'
+                        updateDeleteButtonState() // Update delete button state after selecting all
+                    })
+                }
+
+                // Add event listener for Ctrl+A to check all checkboxes and enable delete button
+                document.addEventListener('keydown', function(event) {
+                    if (
+                        ((event.ctrlKey || event.metaKey) && event.key === 'a') ||
+                        event.key === 'A'
+                    ) {
+                        event.preventDefault()
+                        if (deleteButton2) {
+                            deleteButton2.disabled = false
+                            deleteButton2.classList.add('enabled')
+                        }
+                        const checkboxes = document.querySelectorAll(
+                            '.file-list-container-checkbox'
+                        )
+                        checkboxes.forEach((checkbox) => {
+                            checkbox.checked = true
+                        })
+                        file_checkbox.style.display = 'none'
+                        updateDeleteButtonState() // Update delete button state after selecting all
+                    }
+                })
+
+                fileName.addEventListener('click', () => {
+                    const checkboxes = document.querySelectorAll(
+                        '.file-list-container-checkbox'
+                    )
+                    checkboxes.forEach((checkbox) => {
+                        checkbox.style.display = 'block'
+                        if (checkbox.value === file) {
+                            // Match checkbox with clicked file
+                            checkbox.checked = true // Check the checkbox
+                            checkbox.dispatchEvent(new Event('click'))
+                        } else {
+                            checkbox.checked = false // Uncheck other checkboxes
+                        }
+                    })
+                })
+
+                file_checkbox.addEventListener('click', () => {
+                    // Check if the checkbox is checked
+                    if (file_checkbox.checked) {
+                        fileName.classList.add('selected') // Add 'selected' class to fileName
+                    } else {
+                        fileName.classList.remove('selected') // Remove 'selected' class from fileName
+                    }
+                    // Check if any checkboxes are checked to show/hide SelectAllBtn
+                    const anyChecked = Array.from(
+                        document.querySelectorAll('.file-list-container-checkbox')
+                    ).some((checkbox) => checkbox.checked)
+                    if (SelectAllBtn) {
+                        SelectAllBtn.style.display = anyChecked ? 'block' : 'none'
+                    }
+
+                    // Enable/disable deleteButton2 based on any checkboxes checked
+                    updateDeleteButtonState()
+                })
+
+                function updateDeleteButtonState() {
+                    const anyChecked = Array.from(
+                        document.querySelectorAll('.file-list-container-checkbox')
+                    ).some((checkbox) => checkbox.checked)
+                    if (deleteButton2) {
+                        deleteButton2.disabled = !anyChecked
+                        if (anyChecked) {
+                            deleteButton2.classList.add('enabled')
+                        } else {
+                            deleteButton2.classList.remove('enabled')
+                        }
+                    }
+                }
+            })
+        }
+
+        function RequestFileUpload(event) {
+            const files = event.target.files
+            if (files.length > 0) {
+                const filePaths = Array.from(files).map((file) => file.path)
+                const fileSizes = Array.from(files).map((file) => file.size)
+                console.log('Selected files (subfile):', filePaths, fileSizes)
+                    // Send the file paths to the main process for further processing
+                ipcRenderer.send('upload-files', {
+                    filePaths,
+                    fileSizes
+                })
+            }
+        }
+
+        ipcRenderer.on('files-uploaded-now-reload', () => {
+            console.log('reload folder')
+            console.log(
+                selectedfilePathDir,
+                selectedfilePathDir,
+                selectedfilePathDir
+            )
+            ipcRenderer.send('refresh-folder-fileList', selectedfilePathDir)
+        })
+
+        ipcRenderer.on('local-path', (event, localPath) => {
+            console.log('localpath => ', localPath)
+            selectedfilePathDir = localPath
+            const localpathBanner = document.getElementById('local-path')
+            localpathBanner.innerText = `🖥️ > ${localPath}`
+        })
+
+        document.getElementById('uploadButton').addEventListener('click', () => {
+            ipcRenderer.send('uploadButton-sending-request')
+            console.log('Upload button clicked')
+                // Add your code here for upload button action
+        })
+        const database = document.getElementById('database')
+        database.addEventListener('click', async() => {
+            try {
+                const {
+                    canceled,
+                    filePaths
+                } = await ipcRenderer.invoke(
+                    'choose-contentdir'
+                )
+
+                if (!canceled && filePaths.length > 0) {
+                    CreateMainFolder = filePaths[0]
+                    ipcRenderer.send('create-database', CreateMainFolder)
+
+                }
+            } catch (err) {
+                console.error('Error during folder selection:', err)
+            }
+        })
+
+
+        ipcRenderer.on('choose-mainfolder-update', async(event, CreateMainFolder) => {
+            //////////////////////////////////////////////////////////////////////
+            //// this code written for find first folder in folder list
+            //// now explain  when i click in database then  they reload direct with help of this bellow code
+            const folders = await fs.readdir(CreateMainFolder, {
+                    withFileTypes: true
+                })
+                //const folderList = folders.filter(dirent => dirent.isDirectory()).map(dirent => dirent.name);
+                //console.log('Folders inside selected path:', folderList, ",,,,,,,,,,,,,,,,,,", folders[0].name);
+                ////////////////////////////////////////////////////////////////////////
+            renderID = 'folder-contents'
+                //console.log(firstFolder, "firstFolder")
+            ipcRenderer.send('selected-folder', folders[0].name, renderID)
+            console.log('Selected folder path:', folders[0].name, renderID)
+                // You might want to list all folders inside the selected folder
+        })
+
+        // Listen for IPC message to click the button
+        ipcRenderer.on('click-database-button', () => {
+                console.log('button click 123')
+                database.click()
+            })
+            // Listen for IPC message to click the button
+        ipcRenderer.on('create-database-Dir', (event, CreateMainFolder) => {
+            // CreateMainFolder = folderPath
+            ipcRenderer.send('create-database', CreateMainFolder)
+        });
+
+
+        // Function to handle file selection and deselection
+        function handleFileSelection(fileItemsSelector) {
+            document.querySelectorAll(fileItemsSelector).forEach((fileItem) => {
+                fileItem.addEventListener('click', () => {
+                    document.querySelectorAll(fileItemsSelector).forEach((item) => {
+                        item.classList.remove('selected')
+                    })
+                    fileItem.classList.add('selected')
+                        //console.log(`Selected file: ${fileItem.innerText}`);
+                })
+            })
+        }
+        ipcRenderer.on('alert', (event, message) => {
+            alert(message)
+        })
+    </script>
+    <script src="./deletefile.js"></script>
+</body>
+
+</html>
