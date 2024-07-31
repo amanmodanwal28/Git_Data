@@ -1,14 +1,14 @@
 const electron = require('electron')
-const path = require('path');
-const fs = require('fs');
+const path = require('path')
+const fs = require('fs')
 const { spawn, exec } = require('child_process')
-const { app, BrowserWindow, ipcMain, Menu, dialog } = electron
+const { app, BrowserWindow, ipcMain, Menu, dialog, screen } = electron
 const xml2js = require('xml2js')
 const url = require('url')
 const crc = require('crc')
 const ProgressBar = require('electron-progressbar')
 const exiftool = require('exiftool-vendored').exiftool
-const ffmpegScript = require('./ffmpeg_path') // Adjust the path as necessary
+const { setupFfmpeg } = require('./ffmpeg_path') // Adjust the path as necessary
 const logger = require('./logger')
 const {
     connection,
@@ -35,11 +35,10 @@ const {
     videoFileExtensions,
     musicFileExtensions
 } = require('./fileAdd')
-const {
-    createFileIfNotExists,
-} = require('./generateXmlFile')
+const { createFileIfNotExists } = require('./generateXmlFile')
 
-// Create a new instance of the parser
+const { checkPathsSync } = require('./pathExistVerify')
+    // Create a new instance of the parser
 const parser = new xml2js.Parser({ explicitArray: false })
 
 let CreateMainFolder
@@ -57,8 +56,22 @@ let renderIDfromWeb
 let activeIPs = []
 let count = 0
 let progressBar
-const xmlFilePath = path.join(__dirname, 'Iot_Config.xml') // Adjust the file path as needed
 
+// Get the path to the installation directory
+let installationPath = path.dirname(process.execPath)
+    // Path to config.xml
+let xmlFilePath = path.join(
+        installationPath,
+        'resources',
+        'resources',
+        'Iot_Config.xml'
+    ) // Adjust the file path as needed
+let sourceFfmpegDir = path.join(
+    installationPath,
+    'resources',
+    'resources',
+    'ffmpeg'
+)
 async function createMainWindow(ipList) {
     try {
         const { default: Store } = await
@@ -68,13 +81,15 @@ async function createMainWindow(ipList) {
         const savedPosition = store.get('windowPosition')
         const savedSize = store.get('windowSize')
             // console.log(savedPosition, savedSize)
-        let width, height;
+        const primaryDisplay = screen.getPrimaryDisplay()
+        let { width, height } = primaryDisplay.workAreaSize
+
         mainWindow = new BrowserWindow({
-                width: savedSize ? savedSize.w : 1366,
-                height: savedSize ? savedSize.h : 768,
+                width: savedSize ? savedSize.width : 1366,
+                height: savedSize ? savedSize.height : 768,
                 x: savedPosition ? savedPosition.x : (width - 340) / 2,
                 y: savedPosition ? savedPosition.y : (height - 400) / 2,
-                title: 'PPS',
+                title: 'PT Tool',
                 icon: path.join(__dirname, 'assets', 'pt_logo.ico'), // Adjust the path as necessary
                 alwaysOnTop: true,
                 webPreferences: {
@@ -91,9 +106,10 @@ async function createMainWindow(ipList) {
 
         // Listen for the 'resize' event
         mainWindow.on('resize', () => {
-                const [w, h] = mainWindow.getSize()
-                    // console.log(`Window resized to ${w}x${h}`)
-                store.set('windowSize', { w, h })
+                const bounds = mainWindow.getBounds()
+                const { width, height } = bounds // Destructure the object correctly
+                // console.log(`Window resized to ${width}x${height}`)
+                store.set('windowSize', { width, height })
                     // Perform other actions based on the new size
             })
             // Set the main window to always stay on top
@@ -145,18 +161,13 @@ async function createMainWindow(ipList) {
                                         CreateMainFolder, { recursive: true },
                                         async(err) => {
                                             if (err) {
-                                                logger.error(
-                                                    'Failed to create folder:',
-                                                    err
-                                                )
+                                                logger.error(`Failed to create folder:, ${err}`)
                                             } else {
                                                 logger.info(
                                                     `New folder created at: ${CreateMainFolder}`
                                                 )
                                                 getMainPath(CreateMainFolder)
-                                                await createDatabaseDirectories(
-                                                    CreateMainFolder
-                                                )
+                                                await createDatabaseDirectories(CreateMainFolder)
                                                 mainWindow.webContents.send(
                                                     'create-database-Dir',
                                                     CreateMainFolder
@@ -166,14 +177,7 @@ async function createMainWindow(ipList) {
                                     )
                                 }
                             } catch (err) {
-                                logger.error(
-                                    'Error during folder creation: %o',
-                                    err
-                                )
-                                logger.error(
-                                    'Error during folder creation:',
-                                    err
-                                )
+                                logger.error('Error during folder creation: %o', err)
                             }
                         }
                     },
@@ -186,25 +190,25 @@ async function createMainWindow(ipList) {
                     { type: 'separator' },
                     isMac ? { role: 'close' } : { role: 'quit' }
                 ]
-            },
-            {
-                label: 'View',
-                submenu: [{
-                        label: 'Toggle Developer Tools',
-                        accelerator: isMac ? 'Command+I' : 'Ctrl+I',
-                        click: () => {
-                            mainWindow.webContents.toggleDevTools()
-                        }
-                    },
-                    {
-                        label: 'Refresh',
-                        accelerator: isMac ? 'Command+R' : 'Ctrl+R',
-                        click: () => {
-                            mainWindow.reload()
-                        }
-                    }
-                ]
             }
+            // {
+            //     label: 'View',
+            //     submenu: [{
+            //             label: 'Toggle Developer Tools',
+            //             accelerator: isMac ? 'Command+I' : 'Ctrl+I',
+            //             click: () => {
+            //                 mainWindow.webContents.toggleDevTools()
+            //             }
+            //         },
+            //         {
+            //             label: 'Refresh',
+            //             accelerator: isMac ? 'Command+R' : 'Ctrl+R',
+            //             click: () => {
+            //                 mainWindow.reload()
+            //             }
+            //         }
+            //     ]
+            // }
         ]
 
         const menu = Menu.buildFromTemplate(template)
@@ -220,34 +224,40 @@ async function createMainWindow(ipList) {
         )
     } catch (error) {
         // console.error('Error in createMainWindow:', error)
-        logger.error('Error in createMainWindow: %o', error)
+        logger.error(`Error in createMainWindow: %o, ${error}`)
     }
 }
 
-
-
 app.on('ready', async() => {
-        try {
-            await createFileIfNotExists(xmlFilePath)
-            await processXmlData()
-            await ffmpegScript.setupFfmpeg()
-        } catch (error) {
-            logger.error('Failed to create main window: %o', error)
-            console.error('Failed to create main window:', error)
-        }
-    })
-    // Example error handling
+    try {
+        const paths = checkPathsSync(xmlFilePath, sourceFfmpegDir)
+        xmlFilePath = paths.xmlFilePath
+        sourceFfmpegDir = paths.sourceFfmpegDir
+            // Get the path to the installation directory
+        installationPath = path.dirname(process.execPath)
+            // Path to config.xml
+            // xmlFilePath = path.join(installationPath, 'resources', 'Iot_Config.xml')
+            // sourceFfmpegDir = path.join(installationPath, 'resources', 'ffmpeg')
+        await createFileIfNotExists(xmlFilePath)
+        await processXmlData()
+        await setupFfmpeg(sourceFfmpegDir)
+    } catch (error) {
+        logger.error(`Failed to create main window: %o, ${error}`)
+    }
+})
+
+// Example error handling
 process.on('uncaughtException', (error) => {
-    logger.error('Uncaught Exception:', error);
-});
+    logger.error(`Uncaught Exception:, ${error}`)
+})
 
 process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
+    logger.error(`Unhandled Rejection at:, ${promise}, reason:, ${reason}`)
+})
 
 async function processXmlData() {
     try {
-        const data = await readXmlFile(path.join(__dirname, 'Iot_Config.xml')) // Adjust the path as necessary
+        const data = await readXmlFile(xmlFilePath) // Adjust the path as necessary
         const xml_result = await parser.parseStringPromise(data)
         const dataStructure = xml_result.IOTConfig.DATA_STRUCTURE
         const folderInfo = extractFolderInfo(dataStructure)
@@ -273,7 +283,7 @@ async function processXmlData() {
                 // You can update the UI or perform other actions with the updated IPs_results here
         }, 15000)
     } catch (error) {
-        console.error('Error processing XML data:', error)
+        logger.error('Error processing98 XML data:', error)
     }
 }
 
@@ -413,7 +423,6 @@ ipcMain.on('create-database', async(event, DatabaseFolder) => {
     console.log('Database Folder Path', DatabaseFolder)
     await create_Database(event, DatabaseFolder)
 })
-
 
 async function listFilesAndFolders(directoryPath) {
     try {
@@ -740,8 +749,8 @@ ipcMain.on('sftp-connection-error', (event, errorMessage) => {
         title: 'SFTP Connection Error',
         message: `An error occurred while connecting to the SFTP server:\n${errorMessage}`,
         buttons: ['OK']
-    });
-});
+    })
+})
 
 ipcMain.on('uploadButton-sending-request', async(event) => {
     console.log('hello upload button')
@@ -779,7 +788,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
         }
 
         const paths = await readConfigFile(ConfigFilePath)
-        logger.info('Text CRC:', paths.textCrc)
+        logger.info(`'Text CRC:', ${paths.textCrc}`)
 
         let crcMismatchFound = false
 
@@ -838,8 +847,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                 sftp = await new Promise((resolve, reject) => {
                     conn.sftp((err, sftp) => {
                         if (err) {
-                            logger.error(
-                                `Error obtaining SFTP client for ${ip}:`, err)
+                            logger.error(`Error obtaining SFTP client for ${ip}:`, err)
                             conn.end()
                             reject(err)
                         } else {
@@ -863,13 +871,19 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                         if (!exists) {
                             if (localCrc === expectedCrc) {
                                 await uploadFile(sftp, local, remote)
-                                logger.info(`File successfully uploaded to ${ip} from ${local} to ${remote}`)
+                                logger.info(
+                                    `File successfully uploaded to ${ip} from ${local} to ${remote}`
+                                )
                             } else {
-                                logger.warn(`CRC mismatch for ${local}. Expected ${expectedCrc}, got ${localCrc}. Skipping upload.`)
+                                logger.warn(
+                                    `CRC mismatch for ${local}. Expected ${expectedCrc}, got ${localCrc}. Skipping upload.`
+                                )
                                 crcMismatchFound = true
                             }
                         } else {
-                            logger.info(`File already exists on ${ip} at ${remote}, skipping upload.`)
+                            logger.info(
+                                `File already exists on ${ip} at ${remote}, skipping upload.`
+                            )
                             existingFileCount++
                         }
                         updateProgressBar()
@@ -889,7 +903,9 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                             logger.error(`File not found: ${errPath}`)
                         } else {
                             logger.error(
-                                `Error uploading file to ${ip} from ${local} to ${remote}:`, err)
+                                `Error uploading file to ${ip} from ${local} to ${remote}:`,
+                                err
+                            )
                             await dialog.showMessageBox(mainWindow, {
                                 type: 'error',
                                 title: 'File Transfer Error',

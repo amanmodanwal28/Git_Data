@@ -2,44 +2,93 @@ const { exec } = require('child_process')
 const path = require('path')
 const os = require('os')
 const fs = require('fs').promises
+const logger = require('./logger') // Function to check if a path ending with the given suffix is in the environment variable PATH
 
-// Function to check if a path ending with the given suffix is in the environment variable PATH
+
+
+// Get the path to the installation directory
+let installationPath = path.dirname(process.execPath) // Adjust the file path as needed
+let sourceFfmpegDir = path.join(installationPath, 'resources', 'ffmpeg')
+
+
 function isSuffixInEnvVariable(suffix) {
     const paths = process.env.PATH.split(path.delimiter)
     return paths.some((p) => p.endsWith(suffix))
 }
+// Function to read directory contents recursively
+// Function to read directory contents recursively
+async function readDirRecursive(dir) {
+    try {
+        // logger.info(`readDirRecursive  Directory '${dir}' already exists.`)
+        const files = await fs.readdir(dir);
+        for (const file of files) {
+            const filePath = path.join(dir, file);
+            const stats = await fs.stat(filePath);
 
+            if (stats.isDirectory()) {
+                // logger.info(`Directory: ${filePath}`);
+                await readDirRecursive(filePath); // Recursively read subdirectories
+            } else {
+                // logger.info(`File: ${filePath}`);
+                // const data = await fs.readFile(filePath, 'utf8');
+                // logger.info(`Content of ${filePath}:}\n`);
+            }
+        }
+    } catch (err) {
+        logger.error(`Error readDirRecursive: ${err.message}`)
+    }
+}
+
+// Function to copy ffmpeg directory
 // Function to copy ffmpeg directory
 async function copyFfmpegDirectory(sourceDir, destDir) {
     try {
         // Check if the destination directory already exists
-        await fs.access(destDir)
-        console.log(`Directory '${destDir}' already exists. Skipping copy.`)
-        return // If directory exists, skip copying
+        await fs.access(destDir);
+        logger.info(`Directory '${destDir}' already exists. Skipping copy.`);
+        return; // If directory exists, skip copying
     } catch (err) {
+        if (err.code !== 'ENOENT') {
+            logger.error(`Error accessing destination directory: ${err.message}`);
+            throw new Error(`Error accessing destination directory: ${err.message}`);
+        }
         // Directory does not exist, proceed with copying
     }
 
     try {
-        await fs.mkdir(destDir, { recursive: true })
-        await fs.copyFile(
-            path.join(sourceDir, 'ffmpeg'),
-            path.join(destDir, 'ffmpeg')
-        )
-        console.log(`Copied ffmpeg directory from ${sourceDir} to ${destDir}`)
+        await fs.mkdir(destDir, { recursive: true });
+        // logger.info(`Created destination directory: ${destDir}`);
+
+        const files = await fs.readdir(sourceDir);
+
+        for (const file of files) {
+            const srcPath = path.join(sourceDir, file);
+            const destPath = path.join(destDir, file);
+            const stat = await fs.stat(srcPath);
+
+            if (stat.isDirectory()) {
+                await copyFfmpegDirectory(srcPath, destPath); // Recursively copy directories
+            } else {
+                await fs.copyFile(srcPath, destPath);
+                // logger.info(`Copied file from ${srcPath} to ${destPath}`);
+            }
+        }
+
+        logger.info(`Copied ffmpeg directory from ${sourceDir} to ${destDir}`);
     } catch (error) {
-        console.log(`Error copying ffmpeg directory: `)
-        throw new Error(`Error copying ffmpeg directory: ${error.message}`)
+        logger.error(`Error copying ffmpeg directory: ${error.message}`);
+        throw new Error(`Error copying ffmpeg directory: ${error.message}`);
     }
 }
 
 // Function to set up ffmpeg if not already set up
-async function setupFfmpeg() {
+async function setupFfmpeg(sourceFfmpegDir) {
+    sourceFfmpegDir = sourceFfmpegDir;
     const userInfo = os.userInfo()
     const homeDir = userInfo.homedir
         // Source directory of ffmpeg files
-    const sourceFfmpegDir = path.join(__dirname, 'ffmpeg')
-    console.log(sourceFfmpegDir)
+    await readDirRecursive(sourceFfmpegDir)
+    logger.info(`sourceFfmpegDir : ${sourceFfmpegDir}`)
         // Destination directory in the user's home directory
     const destFfmpegDir = path.join(homeDir, 'ffmpeg')
     const bin = path.join(destFfmpegDir, 'bin')
@@ -64,7 +113,6 @@ async function setupFfmpeg() {
                     resolve()
                 })
             })
-
         } catch (error) {
             console.error(`Error setting up ffmpeg: ${error.message}`)
             throw error

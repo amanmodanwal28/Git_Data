@@ -1,8 +1,4 @@
-const fs = require('fs').promises // Use fs.promises for async file operations
-const path = require('path')
-const logger = require('./logger')
-    // Define the XML content
-const xmlContent = `<?xml version="1.0" standalone="yes"?>
+<?xml version="1.0" standalone="yes"?>
 <IOTConfig version="1.0.0">
   <IPConfig>
     <address />
@@ -92,26 +88,4 @@ const xmlContent = `<?xml version="1.0" standalone="yes"?>
       <regional2 Videos_Sub_folder_name="Regional2" Videos_Sub_folder_url="/usr/share/apache2/htdocs/content/videos/regional2" />
     </VIDEOS>
   </DATA_STRUCTURE>
-</IOTConfig>`
-
-// Define the function to check file existence and create if not present
-async function createFileIfNotExists(filePath) {
-    try {
-        // Check if the file exists
-        logger.info(`File check  at  createFileIfNotExists${filePath}`)
-        try {
-            await fs.access(filePath)
-            logger.info(`File already exists at ${filePath}`)
-        } catch (err) {
-            // File does not exist, create it
-            await fs.writeFile(filePath, xmlContent, 'utf8')
-            logger.info(`File created at ${filePath}`)
-        }
-    } catch (error) {
-        logger.error('Error:', error)
-    }
-}
-
-// Usage
-
-module.exports = { createFileIfNotExists }
+</IOTConfig>

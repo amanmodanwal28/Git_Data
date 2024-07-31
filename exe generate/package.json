@@ -9,31 +9,50 @@
         "dist": "electron-builder"
     },
     "build": {
-        "appId": "PPS.INTERNATIONAL",
-        "productName": "PT-v",
+        "appId": "com.example.pttool",
+        "productName": "PT Tool",
         "files": [
             "**/*",
-            "views/**",
-            "views/assets/**",
-            "ffmpeg/**",
             "sftp.js",
             "xmlParser.js",
+            "generateXmlFile.js",
             "ffmpeg_path.js",
             "fileAdd.js",
             "logger.js",
-            "assets/**"
+            "pathExistVerify.js",
+            "views/**",
+            "views/assets/**",
+            "assets/**",
+            "!resources/**"
+        ],
+        "extraResources": [
+            "resources/**"
         ],
         "directories": {
-            "output": "PT"
+            "output": "PT-Tool"
         },
         "win": {
             "icon": "assets/pt_logo.ico",
             "artifactName": "${productName} - ${version}.${ext}"
+        },
+        "nsis": {
+            "oneClick": false,
+            "allowToChangeInstallationDirectory": true,
+            "createDesktopShortcut": true,
+            "createStartMenuShortcut": true,
+            "shortcutName": "PT Tool",
+            "uninstallerIcon": "assets/pt_logo.ico",
+            "installerIcon": "assets/pt_logo.ico"
         }
     },
-    "keywords": [],
-    "author": "",
-    "license": "ISC",
+    "keywords": [
+        "file-transfer",
+        "electron",
+        "tool",
+        "PT"
+    ],
+    "author": "PT COMMUNICATION <your.email@example.com>",
+    "license": "MIT",
     "description": "File transfer tool",
     "dependencies": {
         "child_process": "^1.0.2",
