@@ -1,0 +1,1 @@
+in resources  you add extra folder data and other file which you add in code and in future you change in exe they here you write and then they change the data 
