@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Prompt</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background: #f5f5f5;
+            font-family: Arial, sans-serif;
+        }
+        
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 300px;
+        }
+        
+        h1 {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        #userInput {
+            margin-bottom: 20px;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        #submit {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        #submit:hover {
+            background-color: #0056b3;
+        }
+        /* Custom modal styles */
+        
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #modalContent {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        #modalButton {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        
+        #modalButton:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <h1>Enter an Advertisement Time Gap in Videos</h1>
+        <input id="userInput" type="text" placeholder="e.g., 30.5" />
+        <button id="submit">Submit</button>
+    </div>
+
+    <!-- Custom Modal -->
+    <div id="modal">
+        <div id="modalContent">
+            <p id="modalMessage">Message</p>
+            <button id="modalButton">OK</button>
+        </div>
+    </div>
+
+    <script>
+        const {
+            ipcRenderer
+        } = require('electron');
+
+        function showModal(message) {
+            const modal = document.getElementById('modal');
+            const modalMessage = document.getElementById('modal-message');
+            modalMessage.textContent = message;
+            modal.style.display = 'flex';
+
+            document.getElementById('modal-ok').onclick = function() {
+                modal.style.display = 'none';
+                document.getElementById('userInput').focus(); // Keep focus on input field
+            }
+        }
+
+        function validateInput() {
+            const inputElement = document.getElementById('userInput');
+            const value = inputElement.value.trim();
+            const numberPattern = /^[0-9]*\.?[0-9]+$/; // Regex to allow numbers and decimals
+
+            if (value === "") {
+                showModal('Please enter some value.');
+                return false;
+            } else if (!numberPattern.test(value)) {
+                showModal('Please enter a valid number or decimal.');
+                return false;
+            }
+            return true;
+        }
+
+        function handleSubmit() {
+            if (validateInput()) {
+                const value = document.getElementById('userInput').value.trim();
+                ipcRenderer.send('prompt-response', value);
+                document.getElementById('userInput').value = ''; // Optionally clear the input field after successful submission
+            }
+        }
+
+        document.getElementById('submit').addEventListener('click', handleSubmit);
+
+        document.getElementById('userInput').addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') {
+                handleSubmit();
+            }
+        });
+
+        document.getElementById('userInput').addEventListener('blur', () => {
+            validateInput();
+        });
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Prompt</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            background: #f5f5f5;
+        }
+
+        #container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #userInput {
+            margin-bottom: 10px;
+        }
+
+        #submit {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        #submit:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <label for="userInput">Enter a value:</label>
+        <input id="userInput" type="text" />
+        <button id="submit">Submit</button>
+    </div>
+    <script>
+        const {
+            ipcRenderer
+        } = require('electron');
+
+        document.getElementById('submit').addEventListener('click', () => {
+            const value = document.getElementById('userInput').value;
+            ipcRenderer.send('prompt-response', value);
+        });
+    </script>
+</body>
+
+</html> -->

@@ -48,6 +48,11 @@ const logger = createLogger({
             handleExceptions: true
         }),
         new transports.File({
+            filename: path.join(logsPath, 'warn.log'),
+            level: 'warn',
+            handleExceptions: true
+        }),
+        new transports.File({
             filename: path.join(logsPath, 'combined.log'),
             handleExceptions: true
         })

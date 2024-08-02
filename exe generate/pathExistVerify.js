@@ -17,9 +17,7 @@ function pathExistsSync(p) {
 function checkPathsSync(xmlFilePath, sourceFfmpegDir) {
     // Check in installationPath
     if (pathExistsSync(xmlFilePath) && pathExistsSync(sourceFfmpegDir)) {
-        logger.info('Found XML file and FFmpeg directory in installationPath')
-
-        logger.info('Updated paths to __dirname')
+        logger.info(`checkPathsSync: Found XML file and FFmpeg directory in installationPath`)
         return { xmlFilePath, sourceFfmpegDir }
     }
 
@@ -29,15 +27,14 @@ function checkPathsSync(xmlFilePath, sourceFfmpegDir) {
 
     // Check in __dirname
     if (pathExistsSync(xmlFilePath) && pathExistsSync(sourceFfmpegDir)) {
-        logger.info('Found XML file and FFmpeg directory in __dirname')
-        logger.info(`xml => ${xmlFilePath}, ffmpeg =>  ${sourceFfmpegDir}`)
+        logger.info(`checkPathsSync: Found XML file and FFmpeg directory in __dirname`)
+        logger.info(`checkPathsSync: xml => ${xmlFilePath}, ffmpeg => ${sourceFfmpegDir}`)
         return { xmlFilePath, sourceFfmpegDir }
     }
 
     // If not found in both
-    logger.error(
-        'Files or directories not found in both installationPath and __dirname.'
-    )
+    logger.error(`checkPathsSync: Files or directories not found in both installationPath and __dirname.`)
+
     return null // Return null or any appropriate value if paths are not found
 }
 

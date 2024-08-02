@@ -116,25 +116,25 @@ const processMediaFile = async(inputFilePath, outputFilePath) => {
                 if (code === 0) {
                     try {
                         await fs.promises.access(outputFilePath)
-                            // console.log('Output file successfully created.', OutputFilePath)
+                            // logger.info(`processMediaFile: Output file successfully created: ${outputFilePath}`)
                         resolve() // Resolve the promise on success
                     } catch (err) {
-                        console.error('Output file was not created.')
+                        logger.error(`processMediaFile: Output file was not created: ${err.message}`)
                         reject(err) // Reject the promise on failure
                     }
                 } else {
-                    console.error('PowerShell script failed.')
+                    logger.error(`processMediaFile: PowerShell script failed.`)
                     reject(new Error('PowerShell script failed.'))
                 }
             })
 
             ps.on('error', (err) => {
-                console.error('Error executing PowerShell script:', err)
+                logger.error(`processMediaFile: Error executing PowerShell script: ${err.message}`)
                 reject(err) // Reject the promise on error
             })
         })
     } catch (err) {
-        console.error(`Error processing media file: ${err.message}`)
+        logger.error(`processMediaFile: Error processing media file: ${err.message}`)
         throw err // Throw the error to be caught in the calling function
     }
 }
@@ -145,7 +145,7 @@ const processImageFile = async(inputFilePath, outputFilePath) => {
     try {
         try {
             await fs.promises.access(outputFilePath)
-            console.log(`Output file already exists: ${outputFilePath}`)
+                // logger.info(`processImageFile: Output file already exists: ${outputFilePath}`)
             return // Skip processing if file exists
         } catch (err) {
             // Output file does not exist, continue with ffmpeg
@@ -171,7 +171,7 @@ const processImageFile = async(inputFilePath, outputFilePath) => {
 
         await exiftool.write(outputFilePath, metadata)
 
-        console.log('Metadata written successfully.')
+        // logger.info(`processImageFile: Metadata written successfully.`)
 
         // Check for and remove the original file if it exists
         if (
@@ -181,14 +181,14 @@ const processImageFile = async(inputFilePath, outputFilePath) => {
             .catch(() => false)
         ) {
             await fs.promises.unlink(originalFilePath)
-            console.log(`${originalFilePath} has been removed.`)
+            logger.info(`processImageFile: ${originalFilePath} has been removed.`)
         } else {
-            console.log('No _original file found.')
+            logger.info(`processImageFile: No _original file found.`)
         }
         // Return a successful resolution
         return Promise.resolve() // or just return; since async functions return promises implicitly
     } catch (err) {
-        console.error(`Error processing image media file: ${err.message}`)
+        logger.error(`processImageFile: Error processing image media file: ${err.message}`)
         return Promise.resolve() // Resolve the promise even if there is an error
     }
 }
@@ -200,12 +200,10 @@ const copyFile = async(source, destination) => {
     return fs.promises
         .copyFile(source, destination)
         .then(() => {
-            console.log(`File copied successfully from ${source} to ${destination}`)
+            // logger.info(`copyFile: File copied successfully from ${source} to ${destination}`)
         })
         .catch((err) => {
-            console.error(`Error copying file from ${source} to ${destination}:`, err)
-            console.log(err)
-            console.log("aaaa")
+            logger.error(`copyFile: Error copying file from ${source} to ${destination}: ${err.message}`)
             throw err // Re-throw the error to be caught by the calling function
         })
 }
@@ -243,8 +241,7 @@ async function getPathAfterDirectory(filePath, dirToFind) {
 
 const writeToFile = async(filesToWrite, destinationFolder) => {
     try {
-
-        console.log('ConfigFilePath', ConfigFilePath)
+        logger.info(`writeToFile: ConfigFilePath => ${ConfigFilePath}`)
             // Check if the file already has content
         let fileContent = ''
         try {
@@ -310,7 +307,7 @@ const writeToFile = async(filesToWrite, destinationFolder) => {
         console.log('Data appended to INDEX.SYS', ConfigFilePath)
 
     } catch (error) {
-        console.error('Error writing to INDEX.SYS:', error)
+        logger.error(`writeToFile: Error writing to INDEX.SYS: ${error.message}`)
         throw error // Propagate the error upwards
     }
 }
@@ -340,7 +337,7 @@ const calculateFileCRC32 = async(filePath) => {
 
 
         stream.on('error', (error) => {
-            console.error('Error calculating CRC32:', error)
+            logger.error(`calculateFileCRC32: Error calculating CRC32: ${error.message}`)
             reject(error)
         })
     })
@@ -351,6 +348,7 @@ const getFrameRate = (filePath) => {
 
         exec(command, (error, stdout, stderr) => {
             if (error) {
+                logger.error(`getFrameRate: Error getting frame rate: ${stderr}`)
                 reject(`Error: ${stderr}`)
             } else {
                 const frameRate = stdout.trim()
@@ -365,6 +363,8 @@ const getFrameRate = (filePath) => {
 async function updateConfigFile(deletedFiles) {
     try {
         // Ensure ConfigFilePath is properly defined and accessible
+        logger.info(`updateConfigFile: Reading file ${ConfigFilePath}`)
+
         const data = await fs.promises.readFile(ConfigFilePath, {
             encoding: 'utf8'
         })
@@ -401,9 +401,9 @@ async function updateConfigFile(deletedFiles) {
         console.log('INDEX.SYS updated successfully', ConfigFilePath)
     } catch (error) {
         if (error.code === 'ENOENT') {
-            console.warn('INDEX.SYS file does not exist:', ConfigFilePath)
+            logger.error(`updateConfigFile: INDEX.SYS file does not exist at ${ConfigFilePath}`)
         } else {
-            console.error('Error updating INDEX.SYS:', error.message)
+            logger.error(`updateConfigFile: Error updating INDEX.SYS: ${error.message}`)
             throw error // Re-throw unexpected errors for further handling
         }
     }

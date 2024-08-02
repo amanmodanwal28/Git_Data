@@ -98,17 +98,17 @@ const xmlContent = `<?xml version="1.0" standalone="yes"?>
 async function createFileIfNotExists(filePath) {
     try {
         // Check if the file exists
-        logger.info(`File check  at  createFileIfNotExists${filePath}`)
+        logger.info(`createFileIfNotExists: Checking file at ${filePath}`)
         try {
             await fs.access(filePath)
-            logger.info(`File already exists at ${filePath}`)
+            logger.info(`createFileIfNotExists: File already exists at ${filePath}`)
         } catch (err) {
             // File does not exist, create it
             await fs.writeFile(filePath, xmlContent, 'utf8')
-            logger.info(`File created at ${filePath}`)
+            logger.info(`createFileIfNotExists: File created at ${filePath}`)
         }
     } catch (error) {
-        logger.error('Error:', error)
+        logger.error(`createFileIfNotExists: Error: ${error}`)
     }
 }
 

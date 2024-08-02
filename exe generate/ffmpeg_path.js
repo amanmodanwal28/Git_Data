@@ -49,8 +49,8 @@ async function copyFfmpegDirectory(sourceDir, destDir) {
         return; // If directory exists, skip copying
     } catch (err) {
         if (err.code !== 'ENOENT') {
-            logger.error(`Error accessing destination directory: ${err.message}`);
-            throw new Error(`Error accessing destination directory: ${err.message}`);
+            logger.error(`copyFfmpegDirectory: Error accessing destination directory: ${err.message}`)
+            throw new Error(`copyFfmpegDirectory: Error accessing destination directory: ${err.message}`)
         }
         // Directory does not exist, proceed with copying
     }
@@ -58,7 +58,7 @@ async function copyFfmpegDirectory(sourceDir, destDir) {
     try {
         await fs.mkdir(destDir, { recursive: true });
         // logger.info(`Created destination directory: ${destDir}`);
-
+        logger.info(`copyFfmpegDirectory: Created destination directory: ${destDir}`)
         const files = await fs.readdir(sourceDir);
 
         for (const file of files) {
@@ -74,7 +74,7 @@ async function copyFfmpegDirectory(sourceDir, destDir) {
             }
         }
 
-        logger.info(`Copied ffmpeg directory from ${sourceDir} to ${destDir}`);
+        logger.info(`copyFfmpegDirectory: Copied ffmpeg directory from ${sourceDir} to ${destDir}`)
     } catch (error) {
         logger.error(`Error copying ffmpeg directory: ${error.message}`);
         throw new Error(`Error copying ffmpeg directory: ${error.message}`);
@@ -87,8 +87,10 @@ async function setupFfmpeg(sourceFfmpegDir) {
     const userInfo = os.userInfo()
     const homeDir = userInfo.homedir
         // Source directory of ffmpeg files
+    logger.info(`setupFfmpeg: Source directory: ${sourceFfmpegDir}`)
+
     await readDirRecursive(sourceFfmpegDir)
-    logger.info(`sourceFfmpegDir : ${sourceFfmpegDir}`)
+    logger.info(`setupFfmpeg: Reading complete for ${sourceFfmpegDir}`)
         // Destination directory in the user's home directory
     const destFfmpegDir = path.join(homeDir, 'ffmpeg')
     const bin = path.join(destFfmpegDir, 'bin')
@@ -103,24 +105,20 @@ async function setupFfmpeg(sourceFfmpegDir) {
             await new Promise((resolve, reject) => {
                 exec(command, (err, stdout, stderr) => {
                     if (err) {
-                        console.error(`Error: ${err.message}`)
+                        logger.error(`setupFfmpeg: Error setting environment variable PATH: ${err.message}`)
                         reject(err)
                         return
                     }
-                    console.log(
-                        `Path '${destFfmpegDir}' added successfully to the environment variable PATH.`
-                    )
+                    logger.info(`setupFfmpeg: Path '${destFfmpegDir}' added successfully to the environment variable PATH.`)
                     resolve()
                 })
             })
         } catch (error) {
-            console.error(`Error setting up ffmpeg: ${error.message}`)
+            logger.error(`setupFfmpeg: Error setting up ffmpeg: ${error.message}`)
             throw error
         }
     } else {
-        console.log(
-            `A path ending with '${suffixToCheck}' already exists in the environment variable PATH.`
-        )
+        logger.info(`setupFfmpeg: A path ending with '${suffixToCheck}' already exists in the environment variable PATH.`)
     }
 }
 

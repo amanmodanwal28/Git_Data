@@ -1,6 +1,7 @@
 const electron = require('electron')
 const path = require('path')
 const fs = require('fs')
+const os = require('os')
 const { spawn, exec } = require('child_process')
 const { app, BrowserWindow, ipcMain, Menu, dialog, screen } = electron
 const xml2js = require('xml2js')
@@ -42,6 +43,7 @@ const { checkPathsSync } = require('./pathExistVerify')
 const parser = new xml2js.Parser({ explicitArray: false })
 
 let CreateMainFolder
+let videoAdvertismentPath = null;
 let directoryPath = String(CreateMainFolder) // Replace with your folder path
     // Define your music and video file extensions
 
@@ -77,10 +79,13 @@ async function createMainWindow(ipList) {
         const { default: Store } = await
         import ('electron-store')
         store = new Store()
+        const minWidth = 1200 // You can adjust this value as needed
+        const minHeight = minWidth / 2
 
         const savedPosition = store.get('windowPosition')
         const savedSize = store.get('windowSize')
-            // console.log(savedPosition, savedSize)
+
+        // console.log(savedPosition, savedSize)
         const primaryDisplay = screen.getPrimaryDisplay()
         let { width, height } = primaryDisplay.workAreaSize
 
@@ -92,6 +97,8 @@ async function createMainWindow(ipList) {
                 title: 'PT Tool',
                 icon: path.join(__dirname, 'assets', 'pt_logo.ico'), // Adjust the path as necessary
                 alwaysOnTop: true,
+                minWidth: minWidth,
+                minHeight: minHeight,
                 webPreferences: {
                     nodeIntegration: true,
                     contextIsolation: false
@@ -157,27 +164,22 @@ async function createMainWindow(ipList) {
                                 CreateMainFolder = filePath
 
                                 if (!canceled && CreateMainFolder) {
-                                    fs.mkdir(
-                                        CreateMainFolder, { recursive: true },
-                                        async(err) => {
-                                            if (err) {
-                                                logger.error(`Failed to create folder:, ${err}`)
-                                            } else {
-                                                logger.info(
-                                                    `New folder created at: ${CreateMainFolder}`
-                                                )
-                                                getMainPath(CreateMainFolder)
-                                                await createDatabaseDirectories(CreateMainFolder)
-                                                mainWindow.webContents.send(
-                                                    'create-database-Dir',
-                                                    CreateMainFolder
-                                                )
-                                            }
+                                    fs.mkdir(CreateMainFolder, { recursive: true }, async(err) => {
+                                        if (err) {
+                                            logger.error(`createMainWindow: Failed to create folder: ${err}`)
+                                        } else {
+                                            logger.info(`createMainWindow: New folder created at: ${CreateMainFolder}`)
+                                            getMainPath(CreateMainFolder)
+                                            await createDatabaseDirectories(CreateMainFolder)
+                                            mainWindow.webContents.send(
+                                                'create-database-Dir',
+                                                CreateMainFolder
+                                            )
                                         }
-                                    )
+                                    })
                                 }
                             } catch (err) {
-                                logger.error('Error during folder creation: %o', err)
+                                logger.error(`createMainWindow: Error during folder creation: ${err}`)
                             }
                         }
                     },
@@ -185,6 +187,7 @@ async function createMainWindow(ipList) {
                         label: 'Open',
                         click: async() => {
                             mainWindow.webContents.send('click-database-button')
+
                         }
                     },
                     { type: 'separator' },
@@ -242,7 +245,7 @@ app.on('ready', async() => {
         await processXmlData()
         await setupFfmpeg(sourceFfmpegDir)
     } catch (error) {
-        logger.error(`Failed to create main window: %o, ${error}`)
+        logger.error(`app.on('ready'): Failed to initialize: ${error}`)
     }
 })
 
@@ -269,9 +272,21 @@ process.on('unhandledRejection', (reason, promise) => {
         timestamp: new Date().toISOString()
     })
 })
-new Promise((resolve, reject) => {
-    reject(new Error('Simulated error'))
-})
+
+async function exampleFunction() {
+    try {
+        await new Promise((resolve, reject) => {
+            reject(new Error('Simulated error'))
+        })
+    } catch (error) {
+        console.error(`Handled Promise Rejection: ${error}`)
+        logger.error(`Handled Promise Rejection: ${error}`)
+    }
+}
+
+exampleFunction()
+
+
 
 async function processXmlData() {
     try {
@@ -301,7 +316,7 @@ async function processXmlData() {
                 // You can update the UI or perform other actions with the updated IPs_results here
         }, 15000)
     } catch (error) {
-        logger.error('Error processing98 XML data:', error)
+        logger.error(`processXmlData: Error processing XML data: ${error}`)
     }
 }
 
@@ -341,7 +356,7 @@ ipcMain.handle('choose-contentdir', async() => {
         })
         return result
     } catch (err) {
-        console.error('Error opening folder selection dialog:', err)
+        logger.error(`ipcMain.handle('choose-contentdir'): Error opening folder selection dialog: ${err}`)
         throw err
     }
 })
@@ -413,6 +428,8 @@ async function create_Database(event, DatabaseFolder) {
             })
 
             event.sender.send('choose-mainfolder-update', CreateMainFolder)
+            await openCustomPrompt()
+
 
             // console.log('Folders listed:', folders)
         } else {
@@ -426,14 +443,12 @@ async function create_Database(event, DatabaseFolder) {
                 })
                 //  window reload
             mainWindow.reload()
-            console.log(
-                'One or more required directories or INDEX.SYS file are missing in the database folder.'
-            )
+            console.log('One or more required directories or INDEX.SYS file are missing in the database folder.')
         }
 
         console.log(count)
     } catch (error) {
-        console.error('Error creating database:', error)
+        logger.error(`create_Database: Error creating database: ${error}`)
     }
 }
 
@@ -460,7 +475,7 @@ async function listFilesAndFolders(directoryPath) {
         }
         return { folders, regularFiles }
     } catch (err) {
-        console.error('Error reading directory:', err)
+        logger.error(`listFilesAndFolders: Error reading directory: ${err}`)
         throw err // Propagate the error upwards
     }
 }
@@ -484,7 +499,7 @@ ipcMain.on('selected-folder', async(event, folderName, renderID) => {
             // Send localPath to renderer process
         event.sender.send('local-path', BrowserolderPath)
     } catch (e) {
-        console.error('Error listing folders:', e)
+        logger.error('selected-folder: Error listing folders: %s', e.message)
     }
 })
 
@@ -503,13 +518,12 @@ ipcMain.on('selected-subfolder', async(event, subfolderPath, renderID) => {
             // Send localPath to renderer process
         event.sender.send('local-path', BrowserSubfolderPath)
     } catch (e) {
-        console.error('Error listing subfolders:', e)
+        logger.error('selected-subfolder: Error listing subfolders: %s', e.message)
     }
 })
 
 // Handle 'selected-subsubfolder' event from renderer process
-ipcMain.on(
-    'selected-subsubfolder',
+ipcMain.on('selected-subsubfolder',
     async(event, subsubfolderPath, renderID) => {
         try {
             const SubsubfolderPath = path.join(CreateMainFolder, subsubfolderPath)
@@ -529,7 +543,7 @@ ipcMain.on(
                 // Send localPath to renderer process
             event.sender.send('local-path', BrowserSubsubfolderPath)
         } catch (e) {
-            console.error('Error listing files in sub-subfolder:', e)
+            logger.error('selected-subsubfolder: Error listing files in sub-subfolder: %s', e.message)
         }
     }
 )
@@ -547,7 +561,7 @@ ipcMain.on('refresh-folder-fileList', async(event, selectedfilePathDir) => {
         event.sender.send(renderIDfromWeb, { folders, regularFiles })
             // console.log('refresh-folder-fileList')
     } catch (error) {
-        console.error('Error refreshing folder contents:', error)
+        logger.error('refresh-folder-fileList: Error refreshing folder contents: %s', error.message)
             // Handle error appropriately (send error to renderer process or log)
     }
 })
@@ -639,7 +653,7 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
                 ].includes(extension)
             ) {
                 ExtensionNotSupport.push(extension)
-                console.log(`Skipping file with extension: ${extension}`)
+                logger.info('upload-files: Skipping file with extension: %s', extension)
                 ExtensionNotMatch = true
                 continue // Skip processing for this file
             }
@@ -695,7 +709,7 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
                         // console.log(crc32)
                     filesToWrite.push({ destinationPath, crc32 })
                 } catch (err) {
-                    console.error('Error processing file or calculating CRC32:', err)
+                    logger.error('upload-files: Error processing file or calculating CRC32 for %s: %s', filePath, err.message)
                     throw err // Propagate error to outer catch block
                 }
             }
@@ -721,7 +735,7 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
         }
         progressBar.close() // Close progress bar
     } catch (error) {
-        console.error('Error uploading files:', error)
+        logger.error('upload-files: Error uploading files: %s', error.message)
     }
 })
 
@@ -752,12 +766,10 @@ async function checkFileSize() {
             // console.log(progressPercent, "progressPercent", "progressPercent")
         progressBar.value = progressPercent // Update progress value
         progressBar.detail = `${Math.floor(progressPercent)}% Complete`
-        progressBar.text = `Processing file:${processedFiles} out of ${totalFiles} ${path.basename(
-      filepath
-    )}`
+        progressBar.text = `Processing file:${processedFiles} out of ${totalFiles} ${path.basename(filepath)}`
     }
-
-    // console.log(`Processed ${processedFiles} out of ${totalFiles} files.`)
+    logger.info('checkFileSize: Processed %d out of %d files.', processedFiles, totalFiles)
+        // console.log(`Processed ${processedFiles} out of ${totalFiles} files.`)
 }
 
 // Handle SFTP connection errors
@@ -806,7 +818,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
         }
 
         const paths = await readConfigFile(ConfigFilePath)
-        logger.info(`'Text CRC:', ${paths.textCrc}`)
+            // logger.info(`'Text CRC:', ${paths.textCrc}`)
 
         let crcMismatchFound = false
 
@@ -922,7 +934,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                         } else {
                             logger.error(
                                 `Error uploading file to ${ip} from ${local} to ${remote}:`,
-                                err
+                                `${err}`
                             )
                             await dialog.showMessageBox(mainWindow, {
                                 type: 'error',
@@ -938,11 +950,8 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                     }
                 }
 
-                await uploadFile(
-                    sftp,
-                    ConfigFilePath,
-                    '/usr/share/apache2/htdocs/content/database/INDEX.SYS'
-                )
+                await uploadFile(sftp, ConfigFilePath, '/usr/share/apache2/htdocs/content/database/INDEX.SYS');
+                await uploadFile(sftp, ConfigFilePath, '/usr/share/apache2/htdocs/content/database/videoAdvertismentTime.txt')
                 conn.end()
                 if (progressBar) progressBar.close()
             } catch (err) {
@@ -987,9 +996,14 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
 })
 async function readConfigFile(ConfigFilePath) {
     try {
+        logger.info('readConfigFile: Attempting to read configuration file - ' + ConfigFilePath)
+
         const data = await fs.promises.readFile(ConfigFilePath, {
             encoding: 'utf8'
         })
+
+        logger.info('readConfigFile: Configuration file read successfully')
+
         const lines = data.split('\n')
         let localPath = []
         let remotePath = []
@@ -1027,7 +1041,7 @@ async function readConfigFile(ConfigFilePath) {
 
         return { localPath, remotePath, textFileSize, textCrc } // Return both arrays as an object
     } catch (err) {
-        logger.error('Error reading or processing INDEX.SYS:', err)
+        logger.error('readConfigFile: Error reading or processing configuration file - ' + err.message)
         throw err // Re-throw the error to be handled by the caller
     }
 }
@@ -1044,15 +1058,16 @@ ipcMain.on('delete-request', async(event, filePaths) => {
                 console.log('Deleting file:', fullPath)
                 await fs.promises.unlink(fullPath)
             } catch (err) {
-                console.error('Error deleting file:', fullPath, err.message)
+                logger.error('delete-request: Error deleting file - ' + fullPath + ' - ' + err.message)
                 success = false
             }
         }
 
         try {
             await updateConfigFile(filePaths)
+            logger.info('delete-request: INDEX.SYS updated successfully')
         } catch (err) {
-            console.error('Error updating INDEX.SYS:', err.message)
+            logger.error('delete-request: Error updating INDEX.SYS - ' + err.message)
             success = false
         }
 
@@ -1063,11 +1078,11 @@ ipcMain.on('delete-request', async(event, filePaths) => {
             })
         } else {
             // User clicked Cancel or closed the dialog
-            console.log('Delete operation cancelled.')
+            logger.info('delete-request: Delete operation cancelled by user.')
             event.reply('delete-status', { error: true })
         }
     } catch (error) {
-        console.error('Unexpected error during delete-request:', error.message)
+        logger.error('delete-request: Unexpected error during delete-request - ' + error.message)
         event.reply('delete-response', {
             error: true,
             message: 'Unexpected error: ' + error.message
@@ -1092,3 +1107,74 @@ ipcMain.on('confirm-delete', async(event) => {
         event.reply('delete-status', { error: true })
     }
 })
+async function openCustomPrompt() {
+    return new Promise((resolve) => {
+        const htmlpath = path.join(__dirname, 'views', 'prompt.html')
+            // pathname: path.join(__dirname, 'views', 'index.html'),
+        const promptWindow = new BrowserWindow({
+            width: 300,
+            height: 150,
+            parent: BrowserWindow.getFocusedWindow(),
+            modal: true,
+            frame: false,
+            titleBarStyle: 'hidden',
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false
+            }
+        })
+
+        promptWindow.loadFile(htmlpath)
+
+        // Adjust size based on content once loaded
+        promptWindow.webContents.on('did-finish-load', () => {
+            promptWindow.webContents
+                .executeJavaScript('document.body.scrollHeight')
+                .then((height) => {
+                    promptWindow.setSize(300, height) // Adjust width and height
+                })
+                .catch((error) => {
+                    logger.error(`Error adjusting window size: ${error}`)
+                })
+        })
+
+        ipcMain.once('prompt-response', (event, value) => {
+            logger.info(`Prompt response received: ${value}`)
+            console.log(value)
+            promptWindow.close()
+
+            resolve(value)
+            writefiles(value)
+        })
+    })
+}
+
+// function writefiles(value) {
+//     fs.writeFile('videoAdvertismentTime.txt', value, (err) => {})
+// }
+
+// Function to write and then copy the file
+function writefiles(value) {
+    const filePath = 'videoAdvertismentTime.txt';
+    const downloadsFolder = path.join(os.homedir(), 'Downloads');
+
+    // Write the file to the current location
+    fs.writeFile(filePath, value, (err) => {
+        if (err) {
+            console.error('Error writing file:', err)
+            return
+        }
+
+        // Copy the file to the Downloads folder
+        // const destPath = path.join(downloadsFolder, filePath);
+        // destPath = path.join(CreateMainFolder, filePath);
+        videoAdvertismentPath = path.join(CreateMainFolder, filePath);
+        fs.copyFile(filePath, videoAdvertismentPath, (err) => {
+            if (err) {
+                logger.error('Error copying file videoAdvertismentPath: %s', err)
+            } else {
+                logger.info(`videoAdvertismentPath File successfully copied to ${videoAdvertismentPath}`)
+            }
+        })
+    });
+}

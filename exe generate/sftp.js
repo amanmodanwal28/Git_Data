@@ -13,11 +13,11 @@ async function connection(ipAddress) {
         const conn = new Client()
         conn
             .on('ready', () => {
-                logger.info(`Connected successfully to ${ipAddress}`)
+                logger.info(`connection: Connected successfully to ${ipAddress}`)
                 resolve(conn)
             })
             .on('error', (err) => {
-                logger.error(`SFTP connection error to ${ipAddress}:`, err)
+                logger.error(`connection: SFTP connection error to ${ipAddress}: ${err.message}`)
                 reject(err)
             })
             .connect({
@@ -32,10 +32,10 @@ async function uploadFile(sftp, localPath, remotePath) {
     return new Promise((resolve, reject) => {
         sftp.fastPut(localPath, remotePath, (err) => {
             if (err) {
-                logger.error(`Error uploading file from ${localPath} to ${remotePath}:`, err)
+                logger.error(`uploadFile: Error uploading file from ${localPath} to ${remotePath}: ${err.message}`)
                 reject(err)
             } else {
-                logger.info(`File successfully uploaded from ${localPath} to ${remotePath}`)
+                logger.info(`uploadFile: File successfully uploaded from ${localPath} to ${remotePath}`)
                 resolve()
             }
         })
@@ -48,14 +48,14 @@ async function checkRemoteFileExists(sftp, remotePath) {
             if (err) {
                 if (err.code === 2) {
                     // No such file or directory
-                    logger.info(`Remote file does not exist: ${remotePath}`)
+                    logger.info(`checkRemoteFileExists: Remote file does not exist: ${remotePath}`)
                     resolve(false)
                 } else {
-                    logger.error(`Error checking remote file existence for ${remotePath}:`, err)
+                    logger.error(`checkRemoteFileExists: Error checking remote file existence for ${remotePath}: ${err.message}`)
                     reject(err)
                 }
             } else {
-                logger.info(`Remote file exists: ${remotePath}`)
+                logger.info(`checkRemoteFileExists: Remote file exists: ${remotePath}`)
                 resolve(true)
             }
         })

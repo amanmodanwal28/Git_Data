@@ -42,7 +42,7 @@ const parseXMLAndCreateDirectories = (xml) => {
     return new Promise((resolve, reject) => {
         xml2js.parseString(xml, (err, result) => {
             if (err) {
-                logger.error(`Error parsing XML:, ${err}`)
+                logger.error(`parseXMLAndCreateDirectories: Error parsing XML: ${err}`)
                 reject(err)
                 return
             }
@@ -106,18 +106,17 @@ const createDatabaseDirectories = (CreateMainFolder) => {
     return new Promise((resolve, reject) => {
         fs.readFile(xmlFilePath, 'utf8', async(err, xmlData) => {
             if (err) {
-                logger.error(`Error reading XML file:, ${err}`)
-                console.log(`Error reading XML file: ${err}`)
+                logger.error(`createDatabaseDirectories: Error reading XML file: ${err}`)
                 reject(err)
                 return
             }
             // Check if the main "content" directory exists
             try {
                 await fsAccess(basePath)
-                logger.info(`Directory already exists: %s, ${basePath}`)
+                logger.info(`createDatabaseDirectories: Directory already exists: ${basePath}`)
                 console.log(`Directory already exists: ${basePath}`)
             } catch {
-                logger.error(`Error creating directories:, ${err}`)
+                logger.error(`createDatabaseDirectories: Error accessing directory: ${err}`)
                 console.log(`Main directory does not exist: ${basePath}`)
                 throw new Error(`Main directory does not exist: ${basePath}`)
             }
@@ -125,7 +124,7 @@ const createDatabaseDirectories = (CreateMainFolder) => {
             // Create the INDEX.SYS file
             const indexSysPath = path.join(basePath, 'INDEX.SYS')
             await fsWriteFile(indexSysPath, '') // Adjust content as needed
-            logger.info(`INDEX.SYS file created at: %s, {$indexSysPath}`)
+            logger.error(`createDatabaseDirectories: Error creating INDEX.SYS file: ${err}`)
             console.log(`INDEX.SYS file created at: ${indexSysPath}`)
                 // Parse XML and create directories
             parseXMLAndCreateDirectories(xmlData).then(resolve).catch(reject)
@@ -146,11 +145,11 @@ const createDatabaseDirectories = (CreateMainFolder) => {
 
 async function readXmlFile(filePath) {
     xmlFilePath = filePath
-    logger.info(`xml path found at : ${filePath}`)
+    logger.info(`readXmlFile : xml path found at : ${filePath}`)
     return new Promise((resolve, reject) => {
         fs.readFile(filePath, (err, data) => {
             if (err) {
-                logger.error(`Error reading XML file:, ${err}`)
+                logger.error(`readXmlFile: Error reading XML file: ${err}`)
 
                 reject(err)
                 return
