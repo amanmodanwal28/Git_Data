@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<IOB>
+<SPEED>1110</SPEED>
+<ADTNS>50</ADTNS>
+<LRS>01:25</LRS>
+<SS>Bayana1 Junction</SS>
+<PS>previous Bayana2 Junction</PS>
+<CS>current Bayana3 Junction</CS>
+<NS>next Bayana4 Junction</NS>
+<DS>Kota</DS>
+<SAFETY_MESSAGE>keep train doors closed in moving train</SAFETY_MESSAGE>
+<EMERGENCY_MESSAGE>THERE IS AN EMERGRNCY</EMERGENCY_MESSAGE>
+</IOB>

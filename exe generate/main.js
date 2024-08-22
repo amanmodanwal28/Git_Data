@@ -951,7 +951,11 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                 }
 
                 await uploadFile(sftp, ConfigFilePath, '/usr/share/apache2/htdocs/content/database/INDEX.SYS');
-                await uploadFile(sftp, ConfigFilePath, '/usr/share/apache2/htdocs/content/database/videoAdvertismentTime.txt')
+                await uploadFile(
+                    sftp,
+                    videoAdvertismentPath,
+                    '/usr/share/apache2/htdocs/content/database/videoAdvertismentTime.txt'
+                )
                 conn.end()
                 if (progressBar) progressBar.close()
             } catch (err) {
@@ -964,6 +968,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                 })
                 if (progressBar) progressBar.close() // Close the progress bar on connection error
             }
+
 
             // Ensure progress bar is updated even if there's an error
             updateProgressBar()
@@ -984,6 +989,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                 buttons: ['OK']
             })
         }
+
 
         activeSelectedIPs = []
     } catch (err) {
@@ -1140,7 +1146,7 @@ async function openCustomPrompt() {
 
         ipcMain.once('prompt-response', (event, value) => {
             logger.info(`Prompt response received: ${value}`)
-            console.log(value)
+            console.log(value, typeof value)
             promptWindow.close()
 
             resolve(value)
@@ -1157,6 +1163,7 @@ async function openCustomPrompt() {
 function writefiles(value) {
     const filePath = 'videoAdvertismentTime.txt';
     const downloadsFolder = path.join(os.homedir(), 'Downloads');
+
 
     // Write the file to the current location
     fs.writeFile(filePath, value, (err) => {

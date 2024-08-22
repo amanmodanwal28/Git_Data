@@ -2,8 +2,8 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Custom Prompt</title>
     <style>
         body {
@@ -16,7 +16,7 @@
             background: #f5f5f5;
             font-family: Arial, sans-serif;
         }
-        
+
         #container {
             display: flex;
             flex-direction: column;
@@ -27,13 +27,13 @@
             padding: 20px;
             width: 300px;
         }
-        
+
         h1 {
             font-size: 18px;
             color: #333;
             margin-bottom: 20px;
         }
-        
+
         #userInput {
             margin-bottom: 20px;
             padding: 8px;
@@ -42,7 +42,7 @@
             width: 100%;
             box-sizing: border-box;
         }
-        
+
         #submit {
             background-color: #007bff;
             color: white;
@@ -53,12 +53,12 @@
             font-size: 16px;
             transition: background-color 0.3s;
         }
-        
+
         #submit:hover {
             background-color: #0056b3;
         }
         /* Custom modal styles */
-        
+
         #modal {
             display: none;
             position: fixed;
@@ -70,14 +70,14 @@
             justify-content: center;
             align-items: center;
         }
-        
+
         #modalContent {
             background: white;
             border-radius: 8px;
             padding: 20px;
             text-align: center;
         }
-        
+
         #modalButton {
             background-color: #007bff;
             color: white;
@@ -88,7 +88,7 @@
             font-size: 16px;
             transition: background-color 0.3s;
         }
-        
+
         #modalButton:hover {
             background-color: #0056b3;
         }
@@ -98,7 +98,7 @@
 <body>
     <div id="container">
         <h1>Enter an Advertisement Time Gap in Videos</h1>
-        <input id="userInput" type="text" placeholder="e.g., 30.5" />
+        <input id="userInput" type="text" placeholder="e.g., 0.5 minute" />
         <button id="submit">Submit</button>
     </div>
 
@@ -113,63 +113,81 @@
     <script>
         const {
             ipcRenderer
-        } = require('electron');
+        } = require('electron')
 
         function showModal(message) {
             const modal = document.getElementById('modal');
-            const modalMessage = document.getElementById('modal-message');
+            const modalMessage = document.getElementById('modalMessage');
+            const modalButton = document.getElementById('modalButton');
+
             modalMessage.textContent = message;
             modal.style.display = 'flex';
+            modal.focus(); // Ensure modal receives focus
 
-            document.getElementById('modal-ok').onclick = function() {
+            // Close modal when button is clicked
+            modalButton.onclick = function() {
                 modal.style.display = 'none';
                 document.getElementById('userInput').focus(); // Keep focus on input field
-            }
+            };
+
+            // Close modal when Enter key is pressed
+            modal.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    modal.style.display = 'none';
+                    document.getElementById('userInput').focus(); // Keep focus on input field
+                }
+            });
+
+            // Ensure the button is focusable
+            modalButton.setAttribute('tabindex', '0');
         }
 
+        // Validate input function
         function validateInput() {
             const inputElement = document.getElementById('userInput');
             const value = inputElement.value.trim();
             const numberPattern = /^[0-9]*\.?[0-9]+$/; // Regex to allow numbers and decimals
 
-            if (value === "") {
+            if (value === '') {
                 showModal('Please enter some value.');
                 return false;
             } else if (!numberPattern.test(value)) {
                 showModal('Please enter a valid number or decimal.');
                 return false;
+            } else if (parseFloat(value) <= 0) {
+                // Check if value is less than or equal to zero
+                showModal('Value must be greater than zero.');
+                return false;
             }
             return true;
         }
 
+
         function handleSubmit() {
             if (validateInput()) {
-                const value = document.getElementById('userInput').value.trim();
-                ipcRenderer.send('prompt-response', value);
-                document.getElementById('userInput').value = ''; // Optionally clear the input field after successful submission
+                const value = document.getElementById('userInput').value.trim()
+                ipcRenderer.send('prompt-response', value)
+                document.getElementById('userInput').value = '' // Optionally clear the input field after successful submission
             }
         }
 
-        document.getElementById('submit').addEventListener('click', handleSubmit);
+        document.getElementById('submit').addEventListener('click', handleSubmit)
 
-        document.getElementById('userInput').addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') {
-                handleSubmit();
-            }
-        });
+        document
+            .getElementById('userInput')
+            .addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    handleSubmit()
+                }
+            })
 
         document.getElementById('userInput').addEventListener('blur', () => {
-            validateInput();
-        });
+            validateInput()
+        })
     </script>
 </body>
 
 </html>
-
-
-
-
-
 
 <!-- <!DOCTYPE html>
 <html lang="en">
