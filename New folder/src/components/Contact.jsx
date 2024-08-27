@@ -72,7 +72,7 @@ export default function Contact({ contactRef }) {
                         leftIcon={<MdEmail color="#1970F1" size="20px" />}
                         id="contact-email"
                       >
-                        itisaman28gmail.com
+                        itisaman28@gmail.com
                       </Button>
                       <Button
                         size="md"
@@ -97,7 +97,7 @@ export default function Contact({ contactRef }) {
                       id="contact-linkedin"
                       onClick={() =>
                         window.open(
-                          'https://www.linkedin.com/in/faisal-mujtaba-480601244'
+                          'https://www.linkedin.com/in/amanmodanwal28/'
                         )
                       }
                       aria-label="facebook"
@@ -110,7 +110,7 @@ export default function Contact({ contactRef }) {
                     <IconButton
                       id="contact-github"
                       onClick={() =>
-                        window.open('https://github.com/amanmodanwal28')
+                        window.open('https://github.com/amanmodanwal28/')
                       }
                       aria-label="github"
                       variant="ghost"
@@ -121,7 +121,7 @@ export default function Contact({ contactRef }) {
                     />
                     {/* <IconButton
                       onClick={() =>
-                        window.open('https://twitter.com/aman_modanwal')
+                        window.open('https://twitter.com/faisal_mujtaba_')
                       }
                       aria-label="discord"
                       variant="ghost"
@@ -138,7 +138,7 @@ export default function Contact({ contactRef }) {
                   <Box m={8} color="#0B0E3F">
                     <VStack
                       as={'form'}
-                      action="https://formspree.io/f/mlekdelp"
+                      action="https://formspree.io/f/xqaznqjb"
                       method="POST"
                       spacing={5}
                     >

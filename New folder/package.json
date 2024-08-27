@@ -1,5 +1,5 @@
 {
-  "homepage": "https://vv97",
+  "homepage":  "https://amanmodanwal28.github.io/",
   "name": "portfolio",
   "version": "0.1.0",
   "private": true,
@@ -7,8 +7,6 @@
     "@chakra-ui/icons": "^2.0.18",
     "@chakra-ui/react": "^2.8.2",
     "@emailjs/browser": "^3.10.0",
-    "@emotion/react": "^11.13.3",
-    "@emotion/styled": "^11.13.0",
     "@fortawesome/fontawesome-svg-core": "^6.2.1",
     "@fortawesome/free-regular-svg-icons": "^6.2.1",
     "@fortawesome/free-solid-svg-icons": "^6.2.1",

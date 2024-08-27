@@ -75,16 +75,6 @@ function App() {
     icon = SiApple;
   }
 
-  useEffect(() => {
-    axios.get("https://geolocation-db.com/json/").then((res) =>
-      axios
-        .post("https://indigo-squirrel-kit.cyclic.app/portfolio", {
-          ip: res.data.IPv4,
-          country_name: res.data.country_name,
-        })
-        .then((r) => setData(r.data))
-    );
-  }, []);
   return (
     <Box>
       <Navbar
@@ -182,7 +172,7 @@ function App() {
         <Contact contactRef={contactRef} />
         <HStack>
           {" "}
-          <Icon as={MdCopyright}> </Icon> <Text>2023 Aman Modanwal</Text>
+          <Icon as={MdCopyright}> </Icon> <Text>2024 Aman Modanwal</Text>
         </HStack>
       </VStack>
     </Box>

@@ -78,7 +78,7 @@ const Toolset = ({ skillsRef }) => {
           </Text>
         </Flex>
 
-        {/* <Flex
+        <Flex
           className="skills-card"
           rounded="xl"
           direction="column"
@@ -95,7 +95,7 @@ const Toolset = ({ skillsRef }) => {
           <Text color="black" p="4" fontWeight="semibold">
             Netlify
           </Text>
-        </Flex> */}
+        </Flex>
 
         <Flex
           className="skills-card"
@@ -205,7 +205,7 @@ const Toolset = ({ skillsRef }) => {
             Replit
           </Text>
         </Flex>
-        <Flex
+        {/* <Flex
           className="skills-card"
           rounded="xl"
           direction="column"
@@ -240,7 +240,7 @@ const Toolset = ({ skillsRef }) => {
           <Text color="black" p="4" fontWeight="semibold">
             Code Pen
           </Text>
-        </Flex>
+        </Flex> */}
       </Grid>
     </Box>
   );

@@ -80,7 +80,7 @@ const Skills = ({ skillsRef }) => {
             React
           </Text>
         </Flex>
-        <Flex
+        {/* <Flex
           className="skills-card"
           rounded="xl"
           direction="column"
@@ -109,7 +109,7 @@ const Skills = ({ skillsRef }) => {
           >
             Redux
           </Text>
-        </Flex>
+        </Flex> */}
         <Flex
           className="skills-card"
           rounded="xl"
@@ -174,7 +174,6 @@ const Skills = ({ skillsRef }) => {
             TypeScript
           </Text>
         </Flex> */}
-
         <Flex
           className="skills-card"
           rounded="xl"
@@ -300,8 +299,8 @@ const Skills = ({ skillsRef }) => {
             MongoDB
           </Text>
         </Flex>
-
-        {/* <Flex
+{/*
+        <Flex
           className="skills-card"
           rounded="xl"
           direction="column"
@@ -330,8 +329,8 @@ const Skills = ({ skillsRef }) => {
           >
             Material UI
           </Text>
-        </Flex> */}
-        {/* <Flex
+        </Flex>
+        <Flex
           className="skills-card"
           rounded="xl"
           direction="column"
@@ -360,8 +359,8 @@ const Skills = ({ skillsRef }) => {
           >
             NextJS
           </Text>
-        </Flex> */}
-        {/* <Flex
+        </Flex>
+        <Flex
           className="skills-card"
           rounded="xl"
           direction="column"
@@ -424,7 +423,7 @@ const Skills = ({ skillsRef }) => {
           </Text>
         </Flex>
 
-        {/* <Flex
+        <Flex
           className="skills-card"
           rounded="xl"
           direction="column"
@@ -454,7 +453,7 @@ const Skills = ({ skillsRef }) => {
           >
           Tailwind CSS
           </Text>
-        </Flex> */}
+        </Flex>
       </Grid>
     </Box>
   );

@@ -20,7 +20,6 @@ import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
 import { useColorMode } from "@chakra-ui/react";
 import { useContext, useEffect } from "react";
 import { ScrollContext } from "../Context/ScrollContext";
-// import faisal from "./Faisal-Mujtaba-Resume.pdf";
 import aman from './amanResume.pdf'
 export default function Navbar({ sections }) {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -172,8 +171,8 @@ export default function Navbar({ sections }) {
                 leftIcon={<GrDocumentPdf />}
                 onClick={() => {
                   window.open(
-                    'https://drive.google.com/file/d/1w6skRez72kCV9W7hv4TTjIqgrYb9NASF/view?usp=share_link'
-                  )
+                    "https://drive.google.com/file/d/1nHORFk1c08Pf-w9FS4Q8jWFDcph0U4ot/view?usp=drive_link"
+                  );
                   // downloadFile();
                 }}
                 bg="none"

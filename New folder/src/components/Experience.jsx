@@ -21,11 +21,11 @@ const Experience = ({expRef}) => {
               December 2022 - Present
             </Text>
             <Text>
-              Developed and maintained web application using Nextjs ,Nodejs and
-              MongoDB , resulting in increased user engagement and improved
-              functionality. Collaborated with cross-functional teams to
-              identify and resolve technical issues, ensuring seamless
-              integration of back-end and front-end systems.
+              Developed and maintained web application using ,Nodejs , resulting
+              in increased user engagement and improved functionality.
+              Collaborated with cross-functional teams to identify and resolve
+              technical issues, ensuring seamless integration of back-end and
+              front-end systems.
             </Text>
           </Box>
         </Center>
@@ -33,10 +33,10 @@ const Experience = ({expRef}) => {
         <Center>
           <Box width={{ base: 'full', sm: 'lg', lg: 'xl' }}>
             <Heading fontSize="lg" mb="2">
-              Full Stack Developer |Apna College
+              Full Stack Developer | Apna College
             </Heading>
             <Text color="gray.600" mb="2">
-              Febuary 2024 - Present
+              february 2022 - Present
             </Text>
             <Text>
               I've gained valuable experience developing multiple MERN stack
