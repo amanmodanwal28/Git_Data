@@ -1,0 +1,159 @@
+/* .App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+} */
+
+.skills-card {
+  box-shadow: 0px 8px 16px -8px rgba(50, 50, 93, 0.25),
+    0px 16px 32px -16px rgba(0, 0, 0, 0.3),
+    0px -2px 6px 0px rgba(10, 37, 64, 0.35) inset,
+    0px -2px 8px 0px rgba(255, 255, 255, 0.5) inset;
+}
+
+
+
+
+ .page-container {
+  z-index: 122;
+  width: 100%;
+  height: 100%;
+  display: block;
+  perspective: 1000px;
+}
+
+ .page-container .card-container {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  /* top: 20px; */
+  width: 100%;
+ 
+  transform-style: preserve-3d;
+  box-sizing: border-box;
+
+}
+
+.page-container .card-container.flipped .front {
+  transform: rotateY(180deg);
+}
+
+.page-container .card-container.flipped .back {
+  transform: rotateY(0deg);
+}
+
+ .page-container .card-container .front{
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  display: block;  
+  background: transparent;
+ 
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transition: -webkit-transform ease 500ms;
+  transition: transform ease 500ms;
+ }
+.page-container .card-container .back {
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  display: none;  
+  background: transparent;
+
+
+ 
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
+  transition: -webkit-transform ease 500ms;
+  transition: transform ease 500ms;
+}
+
+ .page-container .card-container .front {
+  z-index: 2;
+  transform: rotateY(0deg);
+  /* front tile styles go here! */
+}
+
+ .page-container .card-container .back {
+  background: transparent;
+  transform: rotateY(-180deg);
+  font-size: 20px;
+  /* back tile styles go here! */
+}
+
+ .page-container .card-container .image-container {
+ 
+}
+
+ .page-container .card-container .image-container .home-img {
+  width: 100%;
+}
+
+/* .page-container .card-container .image-container .title {
+  font-size: 34px;
+  position: absolute;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  bottom: 0;
+  left: 0;
+  color: rgb
+  (248, 246, 234);
+} */
+
+/* .page-container .card-container .main-area {
+  margin-left: 10px;
+  margin-top: 10px;
+  margin-right: 10px;
+} */
+
+ /* .page-container .card-container .main-area .blog-post {
+  height: 100%;
+} */
+
+ /* .page-container .card-container .main-area .blog-post .date {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-size: 20px;
+} */
+
+/* .page-container .card-container .main-area .blog-post .read-more {
+  font-size: 20px;
+  position: relative;
+  z-index: 122;
+  bottom: 0px;
+  text-align: right;
+} */
