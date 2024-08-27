@@ -446,7 +446,7 @@ async function create_Database(event, DatabaseFolder) {
             console.log('One or more required directories or INDEX.SYS file are missing in the database folder.')
         }
 
-        console.log(count)
+        // console.log(count)
     } catch (error) {
         logger.error(`create_Database: Error creating database: ${error}`)
     }
@@ -499,7 +499,7 @@ ipcMain.on('selected-folder', async(event, folderName, renderID) => {
             // Send localPath to renderer process
         event.sender.send('local-path', BrowserolderPath)
     } catch (e) {
-        logger.error('selected-folder: Error listing folders: %s', e.message)
+        logger.error(`selected-folder: Error listing folders: %s, ${e.message}`)
     }
 })
 
@@ -518,7 +518,7 @@ ipcMain.on('selected-subfolder', async(event, subfolderPath, renderID) => {
             // Send localPath to renderer process
         event.sender.send('local-path', BrowserSubfolderPath)
     } catch (e) {
-        logger.error('selected-subfolder: Error listing subfolders: %s', e.message)
+        logger.error(`selected-subfolder: Error listing subfolders: %s, ${e.message}`)
     }
 })
 
@@ -543,7 +543,7 @@ ipcMain.on('selected-subsubfolder',
                 // Send localPath to renderer process
             event.sender.send('local-path', BrowserSubsubfolderPath)
         } catch (e) {
-            logger.error('selected-subsubfolder: Error listing files in sub-subfolder: %s', e.message)
+            logger.error(`selected-subsubfolder: Error listing files in sub-subfolder: %s, ${e.message}`)
         }
     }
 )
@@ -561,12 +561,16 @@ ipcMain.on('refresh-folder-fileList', async(event, selectedfilePathDir) => {
         event.sender.send(renderIDfromWeb, { folders, regularFiles })
             // console.log('refresh-folder-fileList')
     } catch (error) {
-        logger.error('refresh-folder-fileList: Error refreshing folder contents: %s', error.message)
+        logger.error(`refresh-folder-fileList: Error refreshing folder contents: %s, ${error.message}`)
             // Handle error appropriately (send error to renderer process or log)
     }
 })
 
+let progressBarClosed = false; // Flag to monitor progress bar status
+
+
 ipcMain.on('upload-files', async(event, { filePaths }) => {
+    progressBarClosed = false
     try {
         SourceFilePath = []
         DestinationFilePath = []
@@ -628,30 +632,20 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
             .on('aborted', () => {
                 console.warn('Upload aborted')
                 aborted = true // Set aborted flag
+                progressBarClosed = true;
             })
 
         // First loop: initial file processing
         for (let index = 0; index < filePaths.length; index++) {
+            if (progressBarClosed) break; // Stop processing if progress bar is closed
+
             const filePath = filePaths[index]
             let filename = path.basename(filePath)
             extension = path.extname(filename).toLowerCase().slice(1)
             let destinationPath = path.join(destinationFolder, filename)
 
             // Skip certain video file extensions
-            if (
-                [
-                    'webm',
-                    'wmv',
-                    'ogv',
-                    'flv',
-                    'alac',
-                    'svg',
-                    'webp',
-                    'psd',
-                    'bmp',
-                    'ico'
-                ].includes(extension)
-            ) {
+            if (['webm', 'wmv', 'ogv', 'flv', 'alac', 'svg', 'webp', 'psd', 'bmp', 'ico', 'zip'].includes(extension)) {
                 ExtensionNotSupport.push(extension)
                 logger.info('upload-files: Skipping file with extension: %s', extension)
                 ExtensionNotMatch = true
@@ -677,6 +671,8 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
 
         // Second loop: file operations
         for (let index = 0; index < SourceFilePath.length; index++) {
+            if (progressBarClosed) break; // Stop processing if progress bar is closed
+
             const filePath = SourceFilePath[index]
             const destinationPath = DestinationFilePath[index]
 
@@ -693,23 +689,28 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
 
                 let processFilePromise
                 if (musicVideoEXT.some((ext) => filePath.toLowerCase().endsWith(ext))) {
-                    processFilePromise = processMediaFile(filePath, destinationPath)
+                    processFilePromise = processMediaFile(filePath, destinationPath, progressBarClosed)
                 } else if (
                     imageExtensions.some((ext) => filePath.toLowerCase().endsWith(ext))
                 ) {
-                    processFilePromise = processImageFile(filePath, destinationPath)
+                    processFilePromise = processImageFile(filePath, destinationPath, progressBarClosed)
                 } else {
-                    processFilePromise = copyFile(filePath, destinationPath)
+                    processFilePromise = copyFile(filePath, destinationPath, progressBarClosed)
                 }
 
                 // Run file processing and CRC32 calculation sequentially
                 try {
                     await processFilePromise
-                    const crc32 = await calculateFileCRC32(destinationPath)
+                    const crc32 = await calculateFileCRC32(
+                            destinationPath,
+                            event,
+                            progressBarClosed,
+                            progressBar
+                        )
                         // console.log(crc32)
                     filesToWrite.push({ destinationPath, crc32 })
                 } catch (err) {
-                    logger.error('upload-files: Error processing file or calculating CRC32 for %s: %s', filePath, err.message)
+                    logger.error(`'upload-files: Error processing file or calculating CRC32 for %s: %s',${filePath}, ${err.message}`)
                     throw err // Propagate error to outer catch block
                 }
             }
@@ -728,14 +729,16 @@ ipcMain.on('upload-files', async(event, { filePaths }) => {
         })
 
         if (ExtensionNotMatch) {
-            event.sender.send(
-                'alert',
-                `File with extension: (${ExtensionNotSupport}) is not supported`
-            )
+            event.sender.send('alert', `File with extension: (${ExtensionNotSupport}) is not supported`)
         }
         progressBar.close() // Close progress bar
     } catch (error) {
-        logger.error('upload-files: Error uploading files: %s', error.message)
+        logger.error(`upload-files: Error uploading files: %s, ${error.message}`)
+        event.sender.send('alert', `some File could not be processed.`)
+        if (!progressBarClosed) {
+            progressBar.close() // Ensure progress bar is closed on error
+        }
+        event.sender.send('files-uploaded-now-reload', {})
     }
 })
 
@@ -768,8 +771,8 @@ async function checkFileSize() {
         progressBar.detail = `${Math.floor(progressPercent)}% Complete`
         progressBar.text = `Processing file:${processedFiles} out of ${totalFiles} ${path.basename(filepath)}`
     }
-    logger.info('checkFileSize: Processed %d out of %d files.', processedFiles, totalFiles)
-        // console.log(`Processed ${processedFiles} out of ${totalFiles} files.`)
+    // logger.info('checkFileSize: Processed %d out of %d files.', processedFiles, totalFiles)
+    // console.log(`Processed ${processedFiles} out of ${totalFiles} files.`)
 }
 
 // Handle SFTP connection errors
@@ -787,6 +790,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
     let local, remote
     let sftp
     let existingFileCount = 0 // Counter for existing files
+    progressBarClosed = false;
 
     try {
         if (!CreateMainFolder) {
@@ -853,9 +857,11 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
             .on('completed', () => {
                 console.log('Upload complete')
                 progressBar.detail = 'Upload complete'
+                progressBarClosed = true // Set flag to indicate progress bar is closed
             })
             .on('aborted', () => {
                 logger.warn('Upload aborted')
+                progressBarClosed = true // Set flag to indicate progress bar is closed
             })
             .on('progress', (value) => {
                 progressBar.detail = `Uploading file ${value} of ${totalFiles}`
@@ -877,7 +883,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                 sftp = await new Promise((resolve, reject) => {
                     conn.sftp((err, sftp) => {
                         if (err) {
-                            logger.error(`Error obtaining SFTP client for ${ip}:`, err)
+                            logger.error(`Error obtaining SFTP client for ${ip}:, ${err}`)
                             conn.end()
                             reject(err)
                         } else {
@@ -894,8 +900,8 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                         const expectedCrc = paths.textCrc[i]
 
                         const localCrc = await calculateFileCRC32(local)
-                        logger.info(`Local CRC32 for ${local}: ${localCrc}`)
-                        logger.info(`Expected CRC32: ${expectedCrc}`)
+                        logger.info(`Local CRC32 : ${localCrc} and Expected CRC32: ${expectedCrc}   for ${local}`)
+                            // logger.info(`Expected CRC32: ${expectedCrc}`)
 
                         const exists = await checkRemoteFileExists(sftp, remote)
                         if (!exists) {
@@ -932,10 +938,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                             })
                             logger.error(`File not found: ${errPath}`)
                         } else {
-                            logger.error(
-                                `Error uploading file to ${ip} from ${local} to ${remote}:`,
-                                `${err}`
-                            )
+                            logger.error(`Error uploading file to ${ip} from ${local} to ${remote}:`, `${err}`)
                             await dialog.showMessageBox(mainWindow, {
                                 type: 'error',
                                 title: 'File Transfer Error',
@@ -959,7 +962,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
                 conn.end()
                 if (progressBar) progressBar.close()
             } catch (err) {
-                logger.error(`Error with connection or file transfer to ${ip}:`, err)
+                logger.error(`Error with connection or file transfer to ${ip}:, ${err} `)
                 await dialog.showMessageBox(mainWindow, {
                     type: 'error',
                     title: 'Connection Loss',
@@ -993,7 +996,7 @@ ipcMain.on('uploadButton-sending-request', async(event) => {
 
         activeSelectedIPs = []
     } catch (err) {
-        logger.error('Error:', err)
+        logger.error(`Error:, ${err}`)
     } finally {
         if (progressBar && !progressBar.completed) {
             progressBar.setCompleted() // Ensure progress bar is closed
@@ -1047,7 +1050,7 @@ async function readConfigFile(ConfigFilePath) {
 
         return { localPath, remotePath, textFileSize, textCrc } // Return both arrays as an object
     } catch (err) {
-        logger.error('readConfigFile: Error reading or processing configuration file - ' + err.message)
+        logger.error(`readConfigFile: Error reading or processing configuration file -  + ${err.message}`)
         throw err // Re-throw the error to be handled by the caller
     }
 }
@@ -1064,7 +1067,7 @@ ipcMain.on('delete-request', async(event, filePaths) => {
                 console.log('Deleting file:', fullPath)
                 await fs.promises.unlink(fullPath)
             } catch (err) {
-                logger.error('delete-request: Error deleting file - ' + fullPath + ' - ' + err.message)
+                logger.error(`'delete-request: Error deleting file - ' + ${fullPath} + ' - ' + ${err.message}`)
                 success = false
             }
         }
@@ -1073,7 +1076,7 @@ ipcMain.on('delete-request', async(event, filePaths) => {
             await updateConfigFile(filePaths)
             logger.info('delete-request: INDEX.SYS updated successfully')
         } catch (err) {
-            logger.error('delete-request: Error updating INDEX.SYS - ' + err.message)
+            logger.error(`'delete-request: Error updating INDEX.SYS - ' + ${err.message}`)
             success = false
         }
 
@@ -1088,7 +1091,7 @@ ipcMain.on('delete-request', async(event, filePaths) => {
             event.reply('delete-status', { error: true })
         }
     } catch (error) {
-        logger.error('delete-request: Unexpected error during delete-request - ' + error.message)
+        logger.error(` delete-request: Unexpected error during delete-request -  + ${error.message}`)
         event.reply('delete-response', {
             error: true,
             message: 'Unexpected error: ' + error.message
@@ -1146,7 +1149,6 @@ async function openCustomPrompt() {
 
         ipcMain.once('prompt-response', (event, value) => {
             logger.info(`Prompt response received: ${value}`)
-            console.log(value, typeof value)
             promptWindow.close()
 
             resolve(value)
@@ -1178,7 +1180,7 @@ function writefiles(value) {
         videoAdvertismentPath = path.join(CreateMainFolder, filePath);
         fs.copyFile(filePath, videoAdvertismentPath, (err) => {
             if (err) {
-                logger.error('Error copying file videoAdvertismentPath: %s', err)
+                logger.error(`Error copying file videoAdvertismentPath: %s, ${err}`)
             } else {
                 logger.info(`videoAdvertismentPath File successfully copied to ${videoAdvertismentPath}`)
             }

@@ -62,10 +62,10 @@ const imageExtensions = [
     'psd',
     'raw'
 ]
-const processMediaFile = async(inputFilePath, outputFilePath) => {
+const processMediaFile = async(inputFilePath, outputFilePath, progressBarClosed) => {
     try {
         // Check if the output file already exists
-
+        console.log('processMediaFile method')
         try {
             await fs.promises.access(outputFilePath)
             console.log(`Output file already exists: ${outputFilePath}`)
@@ -113,6 +113,11 @@ const processMediaFile = async(inputFilePath, outputFilePath) => {
         return new Promise((resolve, reject) => {
             ps.on('close', async(code) => {
                 // console.log(`PowerShell script exited with code ${code}`)
+                if (progressBarClosed) {
+                    reject(new Error('File processing aborted due to progress bar closure.'));
+                    return;
+                }
+
                 if (code === 0) {
                     try {
                         await fs.promises.access(outputFilePath)
@@ -139,16 +144,28 @@ const processMediaFile = async(inputFilePath, outputFilePath) => {
     }
 }
 
-const processImageFile = async(inputFilePath, outputFilePath) => {
+const processImageFile = async(inputFilePath, outputFilePath, progressBarClosed) => {
     const originalFilePath = path.join(outputFilePath + '_original')
-
+    console.log('processImageFile method')
     try {
         try {
+            if (progressBarClosed) {
+                return Promise.reject(
+                    new Error('File processing aborted due to progress bar closure.')
+                )
+            }
             await fs.promises.access(outputFilePath)
                 // logger.info(`processImageFile: Output file already exists: ${outputFilePath}`)
             return // Skip processing if file exists
         } catch (err) {
             // Output file does not exist, continue with ffmpeg
+        }
+
+        // Copy the file to the destination directory
+        if (progressBarClosed) {
+            return Promise.reject(
+                new Error('File processing aborted due to progress bar closure.')
+            )
         }
 
         // Copy the file to the destination directory
@@ -164,6 +181,11 @@ const processImageFile = async(inputFilePath, outputFilePath) => {
         }
 
         // Check if Description field exists, add if not
+        if (progressBarClosed) {
+            return Promise.reject(new Error('File processing aborted due to progress bar closure.'))
+        }
+
+        // Check if Description field exists, add if not
         const existingMetadata = await exiftool.read(outputFilePath)
         if (!existingMetadata.Description) {
             metadata.Description = 'Default description'
@@ -174,6 +196,13 @@ const processImageFile = async(inputFilePath, outputFilePath) => {
         // logger.info(`processImageFile: Metadata written successfully.`)
 
         // Check for and remove the original file if it exists
+        if (progressBarClosed) {
+            return Promise.reject(
+                new Error('File processing aborted due to progress bar closure.')
+            )
+        }
+
+        // Check for and remove the original file if it exists
         if (
             await fs.promises
             .access(originalFilePath)
@@ -181,7 +210,7 @@ const processImageFile = async(inputFilePath, outputFilePath) => {
             .catch(() => false)
         ) {
             await fs.promises.unlink(originalFilePath)
-            logger.info(`processImageFile: ${originalFilePath} has been removed.`)
+                // logger.info(`processImageFile: ${originalFilePath} has been removed.`)
         } else {
             logger.info(`processImageFile: No _original file found.`)
         }
@@ -196,14 +225,30 @@ const processImageFile = async(inputFilePath, outputFilePath) => {
 
 
 // Sample implementation of copyFile and writeToFile functions (for completeness)
-const copyFile = async(source, destination) => {
+const copyFile = async(source, destination, progressBarClosed) => {
+
+    console.log('copyFile method')
+    if (progressBarClosed) {
+        return Promise.reject(new Error('File copy operation aborted due to progress bar closure.'))
+    }
+
+
+    // Check if the file is a .zip file and skip copying if it is
+    if (path.extname(source).toLowerCase() === '.zip') {
+        console.log('Skipping .zip file:', source);
+        return Promise.resolve(); // Resolve the promise without copying the file
+    }
+
+    // Proceed with copying the file if it is not a .zip file
     return fs.promises
         .copyFile(source, destination)
         .then(() => {
             // logger.info(`copyFile: File copied successfully from ${source} to ${destination}`)
         })
         .catch((err) => {
-            logger.error(`copyFile: Error copying file from ${source} to ${destination}: ${err.message}`)
+            logger.error(
+                `copyFile: Error copying file from ${source} to ${destination}: ${err.message}`
+            )
             throw err // Re-throw the error to be caught by the calling function
         })
 }
@@ -312,7 +357,7 @@ const writeToFile = async(filesToWrite, destinationFolder) => {
     }
 }
 
-const calculateFileCRC32 = async(filePath) => {
+const calculateFileCRC32 = async(filePath, event, progressBarClosed) => {
     // Calculate CRC32 checksum for a file
     return new Promise((resolve, reject) => {
         const stream = fs.createReadStream(filePath)
@@ -335,9 +380,9 @@ const calculateFileCRC32 = async(filePath) => {
             }
         })
 
-
         stream.on('error', (error) => {
             logger.error(`calculateFileCRC32: Error calculating CRC32: ${error.message}`)
+
             reject(error)
         })
     })

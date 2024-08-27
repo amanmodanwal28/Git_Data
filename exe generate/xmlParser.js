@@ -124,8 +124,7 @@ const createDatabaseDirectories = (CreateMainFolder) => {
             // Create the INDEX.SYS file
             const indexSysPath = path.join(basePath, 'INDEX.SYS')
             await fsWriteFile(indexSysPath, '') // Adjust content as needed
-            logger.error(`createDatabaseDirectories: Error creating INDEX.SYS file: ${err}`)
-            console.log(`INDEX.SYS file created at: ${indexSysPath}`)
+            logger.info(`INDEX.SYS file created at: ${indexSysPath}`)
                 // Parse XML and create directories
             parseXMLAndCreateDirectories(xmlData).then(resolve).catch(reject)
         })
