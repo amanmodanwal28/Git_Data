@@ -1,0 +1,15 @@
+.button, .primary-button {
+  padding: 10px;
+  border: 1px solid #000;
+}
+
+.primary-button {
+  background-color: blue;
+  color: white;
+}
+
+.box {
+  border-radius: 10px;
+  background-color: lightgray;
+  padding: 20px;
+}/*# sourceMappingURL=styles.css.map */
