@@ -1,0 +1,149 @@
+### *HTML*
+
+1. *What is the purpose of the doctype declaration?*
+   - The <!DOCTYPE> declaration tells the browser what version of HTML the page is written in, helping it render the content correctly.
+
+2. *Explain the difference between <div> and <span>.*
+   - <div> is a block-level element used to group larger sections of content, while <span> is an inline element used to style or group smaller pieces of text.
+
+---
+
+### *CSS*
+
+1. *What is the box model in CSS?*
+   - The box model represents the structure of an element as a box with four layers: content, padding, border, and margin.
+
+2. *What are pseudo-elements and pseudo-classes?*
+   - Pseudo-elements allow you to style specific parts of an element (e.g., ::before, ::after), while pseudo-classes apply styles to elements in a particular state (e.g., :hover, :focus).
+
+3. *What is the difference between visibility: hidden and display: none?*
+   - visibility: hidden hides the element but keeps its space on the page, while display: none removes the element and its space entirely.
+
+4. *Explain the concept of z-index.*
+   - z-index controls the stacking order of elements along the z-axis (depth). Elements with a higher z-index appear in front of those with a lower z-index.
+
+---
+
+### *JavaScript Basics*
+
+1. *Explain the concept of hoisting in JavaScript.*
+   - Hoisting is a JavaScript behavior where variable and function declarations are moved to the top of their scope before execution.
+
+2. *What is the difference between let, const, and var?*
+   - var has function scope, let and const have block scope. const cannot be reassigned, while let can be.
+
+3. *What is the difference between == and ===?*
+   - == checks for equality with type conversion, while === checks for equality without type conversion (strict equality).
+
+4. *Explain the Event Loop.*
+   - The Event Loop is a mechanism that handles asynchronous operations in JavaScript, ensuring non-blocking execution by processing tasks from the event queue.
+
+---
+
+### *JavaScript Functions*
+
+1. *What is a closure in JavaScript?*
+   - A closure is a function that remembers and accesses variables from its outer scope even after the outer function has finished executing.
+
+2. *Explain the differences between arrow functions and regular functions.*
+   - Arrow functions have a shorter syntax, do not have their own this, arguments, or super, and cannot be used as constructors.
+
+3. *What is currying in JavaScript?*
+   - Currying is a technique where a function is transformed into a sequence of functions, each with a single argument, making it easier to reuse functions with partially applied arguments.
+
+4. *Explain Promises.*
+   - Promises represent a value that may be available now, later, or never, allowing for the handling of asynchronous operations.
+
+---
+
+### *Responsive Design*
+
+1. *What is the importance of media queries in responsive design?*
+   - Media queries allow you to apply different styles based on the screen size, orientation, and other characteristics, making your design responsive across devices.
+
+2. *Describe the difference between em and rem units in CSS.*
+   - em is relative to the font size of the parent element, while rem is relative to the root element's font size.
+
+---
+
+### *CSS Flexbox*
+
+1. *What is the flexbox model, and how does it work?*
+   - Flexbox is a layout model that allows items to align and distribute space within a container efficiently, even when their size is unknown or dynamic.
+
+2. *Explain the purpose of justify-content and align-items in flexbox.*
+   - justify-content aligns items along the main axis (horizontally), while align-items aligns items along the cross axis (vertically) within a flex container.
+
+---
+
+### *CSS Grid*
+
+1. *How does CSS Grid differ from Flexbox?*
+   - CSS Grid is a two-dimensional layout system that handles both rows and columns, while Flexbox is a one-dimensional system focusing on either rows or columns.
+
+2. *Explain the use of the grid-template-columns property.*
+   - grid-template-columns defines the number of columns and their widths in a grid layout.
+
+---
+
+### *React Basics*
+
+1. *What is JSX in React?*
+   - JSX is a syntax extension for JavaScript that looks like HTML and is used to describe the UI in React components.
+
+2. *Explain the purpose of state in React components.*
+   - State in React components holds dynamic data that can change over time, and it influences how the component renders and behaves.
+
+3. *How do you pass data from Parent to Child component and vice-versa?*
+   - Data is passed from Parent to Child via props, and from Child to Parent using callback functions or context.
+
+4. *Explain the concept of the virtual DOM.*
+   - The virtual DOM is a lightweight representation of the actual DOM, allowing React to update only the parts of the DOM that have changed, leading to efficient rendering.
+
+---
+
+### *React Components*
+
+1. *Differentiate between functional and class components in React.*
+   - Functional components are simpler, written as functions, and use hooks for state and lifecycle features, while class components use ES6 classes and have built-in lifecycle methods.
+
+2. *Describe the lifecycle methods in a React class component.*
+   - Lifecycle methods like componentDidMount, componentDidUpdate, and componentWillUnmount manage the component's behavior at different stages of its life.
+
+3. *How can lifecycle methods be achieved in functional components?*
+   - In functional components, lifecycle methods are handled using hooks like useEffect.
+
+4. *What is the difference between controlled and uncontrolled components?*
+   - Controlled components have their form data managed by React state, while uncontrolled components manage their data using the DOM directly.
+
+5. *What are pure components?*
+   - Pure components in React are components that perform a shallow comparison of props and state to optimize rendering.
+
+---
+
+### *React Hooks*
+
+1. *Explain the use of the useState hook in React.*
+   - useState is a hook that allows you to add state to functional components, returning the current state and a function to update it.
+
+2. *What is the useEffect hook, and why is it used?*
+   - useEffect is a hook that lets you perform side effects like fetching data or updating the DOM after rendering.
+
+3. *What is the difference between useCallback and useMemo hooks?*
+   - useCallback memoizes a function, preventing it from being recreated on every render, while useMemo memoizes the result of a function, optimizing performance.
+
+4. *Explain the useContext hook.*
+   - useContext is a hook that allows you to consume context values directly in a functional component without the need for a context consumer.
+
+---
+
+### *Redux*
+
+1. *What problem does Redux solve in a React application?*
+   - Redux provides a centralized store for managing the state of your application, making state management more predictable and easier to debug.
+
+2. *Explain the roles of actions, reducers, and the store in Redux.*
+   - Actions are payloads of information that send data to the store, reducers specify how the state changes in response to actions, and the store holds the application’s state.
+
+3. *Explain the useReducer hook.*
+   - useReducer is a React hook that lets you manage state using a reducer function, useful for more complex state logic.
