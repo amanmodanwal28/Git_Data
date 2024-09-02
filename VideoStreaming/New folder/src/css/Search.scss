@@ -1,0 +1,60 @@
+// Search.scss
+@import 'variables'; // Import the variables file
+@import 'mixins';    // Import the mixins file
+
+
+// Container styles to center the search component
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+ // Rounded corners
+  position: fixed; // Fixes the position at the top
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 16px; // Optional: add padding to prevent it from touching the edges; // Optional: background color
+  z-index: 1000; // Ensure it stays on top
+}
+
+// Search box styles
+.search-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  @include border-radius($border-radius); // Rounded corners
+  background-color: #fff;
+  max-width: 30rem; // Adjust as needed for responsiveness
+  width: 100%;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); // Optional: subtle shadow
+  
+  input {
+    flex: 1;
+    border: none;
+    padding: 8px 16px;
+    font-size: 16px;
+    @include border-radius($border-radius);
+    background-color: #532424;
+    color: #161515;
+    &::placeholder {
+      color: #999;
+    }
+    &:focus {
+      outline: none;
+    }
+  }
+
+  button {
+    background-color: #c76a6a;
+    border: none;
+    padding: 8px 16px;
+    @include border-radius($border-radius);
+    cursor: pointer;
+    color: #333;
+    font-size: 16px;
+    // Optional: add hover effect
+    &:hover {
+      background-color: #f0f0f0;
+    }
+  }
+}
