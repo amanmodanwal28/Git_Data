@@ -13,3 +13,9 @@ you---
 import VideoLibraryOutlinedIcon from '@mui/icons-material/VideoLibraryOutlined';
 -------
 
+
+install library
+
+yarn add @mui/icons-material @mui/material @emotion/styled @emotion/react
+
+yarn add bootstrap-icons
