@@ -1,0 +1,83 @@
+Here are the answers to the JavaScript and React questions you asked about:
+
+### JavaScript
+
+1. **Differences between Normal Functions and Arrow Functions**:
+   - **Syntax**: Arrow functions have a shorter syntax: `() => {}`.
+   - **`this` Binding**: Arrow functions don't have their own `this` context, instead, they inherit `this` from the surrounding code, while normal functions have their own `this`.
+   - **`arguments` object**: Arrow functions do not have access to the `arguments` object, but normal functions do.
+   - **Constructors**: Arrow functions cannot be used as constructors, while normal functions can.
+
+2. **Hoisting in JavaScript**:
+   - **Hoisting** is JavaScript's default behavior of moving declarations to the top of the current scope.
+   - **`var`**: Variables declared with `var` are hoisted and initialized as `undefined` at the top of the scope.
+   - **`let` and `const`**: These variables are hoisted, but they are not initialized. They remain in the **Temporal Dead Zone (TDZ)** until their actual declaration is encountered.
+
+3. **Temporal Dead Zone (TDZ)**:
+   The TDZ is the time between the hoisting of a variable and its initialization. During this period, any reference to the variable will result in a `ReferenceError`. It mainly applies to `let` and `const`.
+
+4. **Differences between `var`, `let`, and `const`**:
+   - **Scope**: `var` is function-scoped, whereas `let` and `const` are block-scoped.
+   - **Hoisting**: `var` is hoisted and initialized to `undefined`, while `let` and `const` are hoisted but not initialized (TDZ).
+   - **Reassignment**: `var` and `let` can be reassigned, but `const` cannot.
+
+5. **Callback Function**:
+   A callback function is a function passed as an argument to another function and executed after some operation is complete. It’s commonly used in asynchronous operations like `setTimeout()`. Use callbacks to handle asynchronous actions in sequence.
+
+6. **Promises vs. Callbacks**:
+   - **Callbacks**: Used for handling asynchronous operations but can lead to "callback hell."
+   - **Promises**: Provide a cleaner way to handle asynchronous code by chaining `.then()` and `.catch()` for success and failure handling, respectively.
+   - Promises are more readable and scalable than callbacks.
+
+7. **Flattening a Nested Array**:
+   You can use `Array.prototype.flat()` or recursion:
+   ```javascript
+   const nestedArray = [1, [2, [3, [4]], 5]];
+   const flatArray = nestedArray.flat(Infinity);
+   // Or with recursion
+   function flatten(arr) {
+     return arr.reduce((acc, val) => acc.concat(Array.isArray(val) ? flatten(val) : val), []);
+   }
+   ```
+
+8. **Higher-Order Functions (HOF)**:
+   A higher-order function is a function that takes another function as an argument or returns a function. They are useful for creating utilities like `map()`, `filter()`, and `reduce()`.
+
+9. **Polyfill for `Array.prototype.map`**:
+   ```javascript
+   Array.prototype.myMap = function(callback) {
+     const result = [];
+     for (let i = 0; i < this.length; i++) {
+       result.push(callback(this[i], i, this));
+     }
+     return result;
+   };
+   ```
+
+10. **Memoization**:
+    Memoization is an optimization technique that stores the results of expensive function calls and returns the cached result when the same inputs occur again.
+    ```javascript
+    function memoize(fn) {
+      const cache = {};
+      return function (...args) {
+        const key = JSON.stringify(args);
+        if (!cache[key]) {
+          cache[key] = fn.apply(this, args);
+        }
+        return cache[key];
+      };
+    }
+    ```
+
+### React
+
+1. **`useCallback` and `useMemo`**:
+   - **`useCallback`**: Returns a memoized version of the callback function, which only changes if one of the dependencies changes.
+   - **`useMemo`**: Returns a memoized value, which only recomputes if its dependencies change.
+   Both are used to prevent unnecessary re-renders or recalculations.
+
+2. **Custom Hook (e.g., `useFetch`, `useDebounce`)**:
+   ```javascript
+   function useFetch(url) {
+     const [data, setData] = React.useState(null);
+     React.useEffec
