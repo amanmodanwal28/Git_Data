@@ -1,0 +1,267 @@
+/********************************* 2 media query at 1280px ********************************/
+@media (min-width: 1331px) and (max-width:3580px) {
+
+
+  .playlist h4 {
+    margin-left: 13%;
+  }
+
+  .masterPlay {
+    left: 50%;
+    transform: translateX(-50%);
+    width: 50vw;
+    
+  }
+}
+
+
+/********************************* One media query at 1242px ********************************/
+
+
+
+/********************************* One media query at 1222px ********************************/
+@media (min-width: 1142px) and (max-width: 1330px) {
+
+
+  .playlist h4 {
+    margin-left: 7%;
+  }
+
+
+
+  .masterPlay {
+    left: 60vw;
+    transform: translateX(-50%);
+    width: 60vw;
+  }
+
+  .song-details {
+    font-size: 16px;
+  }
+
+  audio {
+    width: 500px;
+    margin: auto;
+    align-items: center;
+  }
+
+  .song-details .song-title {
+    font-size: 15px;
+    display: inline-block;
+  }
+}
+
+
+
+/********************************* some media queries at 720px ********************************/
+@media (min-width:505px) and (max-width:1140px) {
+
+
+  #folderSelect {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 10px;
+    /* Align items to the start of the cross axis */
+  }
+
+  .music_box a {
+    display: block;
+  }
+
+  .masterPlay {
+    left: 60vw;
+    transform: translateX(-50%);
+    width: 60vw;
+  }
+
+  audio {
+    width: 45vw;
+    margin: auto;
+    align-items: center;
+  }
+
+  .song-details {
+    font-size: 14px;
+  }
+
+
+  .playlist {
+    /* background-color: red; */
+    color: rgb(97, 27, 154);
+    position: absolute;
+    right: 0;
+    left: 0;
+    top: 370px;
+    padding-bottom: 80px;
+    overflow: auto;
+  }
+
+
+
+  #folderSelect {
+    display: flex;
+  }
+
+
+
+
+
+}
+
+
+
+/* Additional styles for folderSelect when screen width is less than or equal to 502px */
+@media (min-width:402px) and (max-width: 808px) {
+  #folderSelect {
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+    white-space: nowrap;
+    /* Prevent items from wrapping to the next line */
+    -webkit-overflow-scrolling: touch;
+    /* Enable smooth scrolling on iOS devices */
+    scroll-snap-type: x mandatory;
+    /* Enable pointer drag option */
+    overflow: auto;
+    /* Enable scrolling */
+  }
+
+  .music_box {
+    flex: 0 0 auto;
+    /* Prevent boxes from growing to fill the available space */
+    width: auto;
+    /* Allow boxes to have their natural width */
+    scroll-snap-align: start;
+    /* Align the start of each box with the scroll snap container */
+  }
+
+  #folderSelect::-webkit-scrollbar {
+    width: 0;
+    /* Remove scrollbar width */
+    height: 0;
+    /* Remove scrollbar height */
+    background: transparent;
+    /* Hide scrollbar background */
+  }
+}
+
+
+
+/*********************************  media queries at 502px ********************************/
+@media (max-width:502px) {
+
+  .display {
+    margin-top: 0px;
+    width: 120px;
+    height: 200px;
+  }
+
+  .masterPlay {
+    left: 60vw;
+    transform: translateX(-50%);
+    width: 60vw;
+    height: 7vh
+  }
+
+  audio {
+    width: 40vw;
+    margin: auto;
+    align-items: center;
+  }
+
+  .song-details {
+    font-size: 14px;
+  }
+
+
+
+  .song-title {
+    width: 100%;
+    font-size: 8px;
+  }
+
+
+  .playlist {
+    /* background-color: red; */
+    color: rgb(97, 27, 154);
+    position: absolute;
+    right: 0;
+    left: 0;
+    top: 400px;
+    padding-bottom: 80px;
+    overflow: auto;
+
+  }
+
+  #songtitle {
+    width: 100%;
+    height: 20px;
+  }
+
+  #folderSelect {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 10px;
+    /* Align items to the start of the cross axis */
+  }
+
+  .music_box a {
+    display: block;
+  }
+
+
+
+}
+
+
+
+/* Additional styles for folderSelect when screen width is less than or equal to 502px */
+@media (max-width: 408px) {
+  #folderSelect {
+    overflow-x: auto;
+    /* Enable horizontal scrolling */
+    white-space: nowrap;
+    /* Prevent items from wrapping to the next line */
+    -webkit-overflow-scrolling: touch;
+    /* Enable smooth scrolling on iOS devices */
+    scroll-snap-type: x mandatory;
+    overflow: auto;
+  }
+
+  .music_box {
+    flex: 0 0 auto;
+    /* Prevent boxes from growing to fill the available space */
+    width: auto;
+    /* Allow boxes to have their natural width */
+    scroll-snap-align: start;
+    /* Align the start of each box with the scroll snap container */
+  }
+
+  #folderSelect {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin: 10px;
+    /* Align items to the start of the cross axis */
+  }
+
+  .music_box a {
+    display: block;
+  }
+
+    .masterPlay {
+      left: 60vw;
+      transform: translateX(-50%);
+      width: 110vw;
+      height : 5vh
+    }
+  
+    audio {
+      width: 80vw;
+      margin: auto;
+      align-items: center;
+    }
+
+
+}

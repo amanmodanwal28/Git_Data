@@ -1,0 +1,52 @@
+.tourist_places_heading {
+    padding-top: 20px;
+    font-family: Arial;
+    text-align: center;
+    font-weight: bolder;
+    font-size: 43px;
+    color: black;
+}
+
+.tour_heading_name {
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    font-size: 25px;
+    margin: 50px 30px 30px 30px;
+    color: black;
+}
+
+.tourist_places_sub_heading {
+    padding-top: 60px;
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    font-size: 43px;
+    color: black;
+}
+
+.tour_heading_name2 {
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    font-size: 25px;
+    color: black;
+}
+
+.paragraph {
+    font-size: 22px;
+    color: rgb(35, 33, 33);
+}
+
+.right {
+    width: 50%;
+    float: left;
+}
+
+.left {
+    float: left;
+    width: 50%;
+}

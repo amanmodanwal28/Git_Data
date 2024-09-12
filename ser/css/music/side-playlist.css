@@ -1,0 +1,135 @@
+/**************************** CSS for playlist positioned at right side *****************************/
+.playlist {
+  font-family: 'Comfortaa', cursive;
+}
+
+
+
+.playlist {
+  /* background-color: red; */
+  color: rgb(97, 27, 154);
+  position: absolute;
+  right: 0px;
+  left: 330px;
+  top: 240px;
+  padding-bottom: 80px;
+  /* bottom: 60px; */
+  overflow: auto;
+  margin-bottom: 50px;
+}
+
+.song-container {
+  max-height: 60vh;
+  /* Adjust the height as needed */
+  overflow-y: auto;
+  /* Enable vertical scrolling */
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+
+  scrollbar-width: none;
+  /* Hide the scrollbar */
+  /* For Firefox */
+  -ms-overflow-style: none;
+  /* Hide the scrollbar (for IE and Edge) */
+}
+
+
+.playlist::-webkit-scrollbar-thumb {
+  background: #ebe9e9;
+  /* Color of the scrollbar thumb */
+  width: 8px;
+  /* Width of the scrollbar thumb */
+  height: 30px;
+  /* Height of the scrollbar thumb */
+}
+
+
+.masterPlay {
+  position: fixed;
+}
+
+
+
+
+
+
+#playlistItems .playlist-item {
+  display: flex;
+  margin: auto;
+  justify-content: flex-start;
+  align-items: center;
+  border-radius: 5px;
+  transition: .2s;
+}
+
+
+.playlist-item:hover {
+  background-color: #0e91e8;
+  cursor: pointer;
+  color: rgb(172, 32, 8);
+}
+
+
+
+
+.song-container .index {
+  font-size: 19px;
+  color: grey;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.waveform {
+  display: none;
+}
+
+
+
+
+
+
+
+.song-info p:nth-child(1) {
+  font-family: 'Comfortaa';
+  font-weight: bold;
+  padding-top: 5px;
+
+
+}
+
+.song-info p:nth-child(2) {
+  font-size: 19px;
+  font-weight: bold;
+  color: grey;
+}
+
+.song-container .song-info {
+  width: 600px;
+  margin: 5px;
+}
+
+/* list item font size */
+
+.playlist-item {
+  font-size: 18px;
+}
+
+.playlist-item.active {
+  font-weight: bold;
+  font-style: italic;
+  color: darkgreen;
+  font-size: 25px;
+}
+
+.music_box.active {
+  /* Add styling for the active folder */
+  background-color: #0beb70;
+  box-shadow: 20px 20px 20px rgba(234, 72, 3, 0.4);
+  transform: scale(1.1) rotateX(5deg) rotateY(5deg);
+}
+
+.music_box:hover {
+  /* Add hover effect for all folders */
+  transform: scale(1.05) rotateX(3deg) rotateY(3deg);
+  box-shadow: 10px 10px 15px rgba(56, 4, 201, 0.3);
+}

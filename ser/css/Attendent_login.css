@@ -1,0 +1,153 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+
+}
+
+#Attendent_login_body {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    background: linear-gradient(to right, #1995AD, #A1D6E2, #66FCF1);
+    background-color: rgb(61, 58, 58);
+    background-position: center;
+    background-size: cover;
+}
+
+.form-box,
+.form-box-register,
+.form-box-existing {
+    position: relative;
+    width: 400px;
+    height: 420px;
+    background: transparent;
+    border-radius: 30px;
+    border: none;
+    border-radius: 20ox;
+    backdrop-filter: blur(15px) brightness(80%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.form-box-register {
+    height: 500px;
+}
+
+.form-box-existing {
+    height: 270px;
+}
+
+#Attendent_login_heading {
+    font-size: 2em;
+    color: #fff;
+    text-align: center;
+}
+
+.inputbox {
+    position: relative;
+    margin: 30px 0;
+    width: 310px;
+    border-bottom: 1px solid #fff;
+}
+
+.inputbox label {
+    position: absolute;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 1em;
+    pointer-events: none;
+    transition: 0.5s;
+}
+
+/* animation start */
+
+/* For input, select, and textarea labels */
+.input:focus~label,
+input:valid~label,
+.select:focus~label,
+select:valid~label,
+textarea:focus~label,
+textarea:valid~label {
+    top: -5px;
+    font-size: 1.2em;
+    margin: -10px;
+}
+
+/* animation end */
+
+.inputbox input,
+.inputbox select,
+.inputbox textarea {
+    width: 100%;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 1em;
+    padding: 0 5px 0 5px;
+    color: #090909;
+}
+
+
+
+textarea::placeholder {
+    color: rgb(6, 6, 6);
+}
+
+.Attendent_login_btn {
+    width: 100%;
+    height: 40px;
+    border-radius: 40px;
+    background-color: #fff;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+}
+
+
+
+#register_login_btn,
+#register_form_existing,
+#register_form_existing_status {
+    width: 48%;
+    height: 40px;
+    border-radius: 40px;
+    background-color: #fff !important;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    display: inline-block;
+    /* Add this line */
+}
+
+#register_login_btn {
+    float: left;
+    background-color: #fff;
+    /* Add this line */
+}
+
+#register_form_existing {
+    float: right;
+    /* Add this line */
+}
+
+#register_form_existing_status {
+    margin: 0 auto;
+    /* This centers the block-level element */
+    display: block;
+}
+
+
+@media screen and (max-width:400px) {
+    .form-box {
+        width: 100%;
+        border-radius: 0px;
+    }
+}

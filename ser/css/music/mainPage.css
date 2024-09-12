@@ -1,0 +1,113 @@
+/********************************* CSS for Trending section *********************************/
+
+
+
+
+/********************************** CSS for Latest Release **********************************/
+
+/****************** masterPlay means bottom music player - It is divided into two parts  ***********************/
+.masterPlay {
+  height: 50px;
+  width: 30vw;
+  position: absolute;
+  bottom: 1px;
+  border: none;
+
+  border-radius: 90px;
+  /* background-image: url('../music/moon.jpg'); */
+  background: linear-gradient(to right, #09c0e9, #7ea1e2);
+  display: flex;
+
+  align-items: center;
+  margin: auto;
+}
+
+.masterPlay:hover {
+  background: linear-gradient(to right, #09c0e9, #7ea1e2);
+}
+
+/************************************ left section **************************************/
+.leftside {
+  width: 250px;
+}
+
+
+
+
+
+.song-details {
+  /* display: inline-block; */
+  /* vertical-align: top; */
+  /* line-height: 14px; */
+  margin-left: 20px;
+  color: rgb(10, 10, 10);
+  font-size: 18px;
+  font-weight: 700;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  font-style: italic;
+
+}
+
+.song-details .song-title {
+  font-size: 19px;
+  display: inline-block;
+}
+
+#folderSelect {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* Align items to the start of the cross axis */
+}
+
+.music_box {
+  margin: 10px;
+  /* Adjust margin as needed */
+}
+
+.music_box a {
+  display: block;
+}
+
+
+/************************************* middle section *****************************************/
+.middle {
+  display: flex;
+  align-items: center;
+}
+
+.middle img {
+  width: 16px;
+  margin: 0px 10px;
+  transition: .15s;
+}
+
+.middle img:hover {
+  width: 15px;
+  cursor: pointer;
+}
+
+audio {
+  width: 515px;
+  height: 30px;
+}
+
+audio::-webkit-media-controls-panel {
+  background: linear-gradient(to right, #09c0e9, #7ea1e2);
+}
+
+audio::-webkit-media-controls-play-button {
+  border-radius: 50%;
+  margin-left: -8px;
+}
+
+audio::-webkit-media-controls-play-button:hover {
+  background-color: rgba(48, 113, 134, 0.7);
+}
+
+
+
+
+
+/* //////////////////////////////////////////////////// */
+

@@ -1,0 +1,97 @@
+.form_register {
+    margin: auto;
+    margin-top: 200px;
+    height: auto;
+    width: 400px;
+    border: 5px solid red;
+    box-sizing: border-box;
+    background-color: #ff9933;
+}
+
+.service_heading {
+    align-items: center;
+    text-align: center;
+}
+
+.pnrnumber {
+    font-style: normal;
+    font-weight: 900;
+}
+
+
+.customer_data_sheet {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.customer_data_sheet td,
+th {
+    border: 1px solid black;
+    text-align: left;
+    padding: 8px;
+}
+
+
+.check_pnr_complain {
+    margin: auto;
+    margin-top: 10px;
+    height: auto;
+    width: 400px;
+    border: 2px dotted red;
+    box-sizing: border-box;
+    background-color: #c221aa;
+}
+
+
+/* ....................... */
+/* //////////////////////// */
+/*  Attendent login form */
+
+.Attendent_login_form {
+    margin: auto;
+    margin-top: 200px;
+    height: auto;
+    width: 400px;
+    border: 5px solid red;
+    box-sizing: border-box;
+    background-color: #ff9933;
+}
+
+
+/* ....................... */
+/* //////////////////////// */
+/*  Attendent status form  datasheet */
+
+#attendent_table_datasheet {
+    border-spacing: 0;
+    border: 1px solid #ddd;
+    width: 100%;
+    overflow-x: auto;
+}
+
+#attendent_table_datasheet,
+#attendent_table_datasheet th,
+#attendent_table_datasheet td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+table.center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media screen and (max-width: 800px) {
+    #attendent_table_datasheet {
+        width: 100%;
+    }
+
+    /* You can remove the following if you don't need them for this specific table */
+    .left,
+    .main,
+    .right {
+        width: 100%;
+    }
+}

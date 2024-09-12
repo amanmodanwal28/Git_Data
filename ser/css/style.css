@@ -1,0 +1,710 @@
+@charset "utf-8";
+html {
+    height: 100%;
+}
+
+
+/* Disable dragging */
+
+img {
+    pointer-events: none;
+}
+
+body,
+img,
+a,
+button {
+    user-select: none;
+    -webkit-user-drag: none;
+    /* For WebKit browsers */
+    -moz-user-select: none;
+    /* For Mozilla browsers */
+    -ms-user-select: none;
+    /* For Internet Explorer/Edge */
+    cursor: default;
+    /* Change cursor to default to avoid dragging cursor */
+}
+
+body {
+    background: linear-gradient(to right, #1995AD, #A1D6E2, #66FCF1);
+    margin: 0px;
+    padding: 0px;
+    user-select: none;
+    font-family: 'Noto Sans', sans-serif;
+    font-family: 'Noto Sans Tamil', sans-serif;
+    font-family: 'Noto Sans Telugu', sans-serif;
+    font-family: 'Noto Sans Kannada', sans-serif;
+    font-family: 'Noto Sans Bengali', sans-serif;
+    font-family: 'Noto Sans Malayalam', sans-serif;
+    font-family: 'Noto Sans Gujarati', sans-serif;
+    font-family: 'Noto Sans Gurmukhi', sans-serif;
+    font-family: 'Noto Sans Oriya', sans-serif;
+}
+
+ul {
+    list-style: none;
+}
+
+a {
+    text-decoration: none;
+    display: inline-block;
+        /* Ensure the anchor covers the image */
+}
+
+ 
+ img {
+     display: block;
+     /* Remove any spacing below the image */
+     border: none;
+     /* Remove default border from anchor */
+ }
+#marquee1_register_form {
+    overflow: hidden;
+    z-index: 1;
+    width: 93%;
+    margin-top: 30px;
+    font-style: italic;
+    font-weight: bolder;
+    font-size: 37px;
+    color: #4A274F;
+    align-items: center;
+    font-family: Arial, Helvetica, Sans-Serif;
+}
+
+#attendent_login_btn {
+    float: right;
+    width: 28%;
+    height: 48px;
+    text-align: right;
+    margin-right: 11px;
+}
+
+#attendent_login_btn button {
+    height: 48px;
+    background: linear-gradient(to left, #ff9933 0%, #33ccff 100%);
+    font-size: 15px;
+    font-weight: bolder;
+    margin-top: -42px;
+}
+
+#marquee1_attendent_form {
+    overflow: hidden;
+    z-index: 1;
+    width: 100%;
+    margin-top: 30px;
+    font-style: italic;
+    font-weight: bolder;
+    font-size: 37px;
+    color: #4A274F;
+    align-items: center;
+    font-family: Arial, Helvetica, Sans-Serif;
+}
+
+#attendent_login_btn2 {
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+}
+
+#attendent_login_btn2 button {
+    height: 48px;
+    width: 100%;
+    background: linear-gradient(to left, #ff9933 0%, #33ccff 100%);
+    font-size: 15px;
+    font-weight: bolder;
+}
+
+.movies_type_heading_top {
+    font-size: 33px;
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    padding-top: 15px;
+    margin: 30px;
+    color: #32323e;
+}
+
+.movies_type_heading_allOther {
+    font-size: 33px;
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-style: italic;
+    font-weight: bold;
+    text-align: center;
+    margin: 25px;
+    color: #32323e;
+}
+
+@media screen and (min-width: 800px) {
+    /* Adjust styles for screens wider than 800px */
+    #marquee1_attendent_form {
+        width: 60%;
+        /* Adjust width for even larger screens */
+    }
+    #attendent_login_btn2 {
+        width: 20%;
+        /* Adjust width for even larger screens */
+    }
+}
+
+button {
+    background: linear-gradient(to left, #ff9933 0%, #33ccff 100%);
+    height: 50px;
+    width: 100%;
+}
+
+h2 {
+    margin: 1%;
+    color: #fff
+}
+
+h3 {
+    margin: 0%;
+    color: #fff
+}
+
+.container1 {
+    width: 100%;
+    height: 60vh;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 160px 0px;
+    /*background-color:#17171d;*/
+}
+
+.box {
+    background: linear-gradient(to left, #ff9933 0%, #33ccff 100%);
+    width: 250px;
+    height: 320px;
+    background-color: #7e1e26;
+    border-radius: 50px;
+    box-shadow: 2px 10px 12px rgba(0, 0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*justify-content:space-between;*/
+    box-sizing: border-box;
+    margin: 100px 10px;
+}
+
+.model {
+    height: auto;
+    max-height: 100%;
+    max-width: 100%;
+}
+
+.details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+}
+
+.details p {
+    font-family: calibri;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.marvel {
+    color: #00539CFF;
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-family: bebas kai;
+    font-size: 25px;
+    margin-top: 50px;
+}
+
+.logo {
+    height: 20px;
+}
+
+.box:hover {
+    background-color: #17171d;
+    transform-style: preserve-3d;
+    transform: scale(1.02);
+    transition: all ease 0.3s;
+}
+
+.box:hover .marvel {
+    background-color: #EEA47FFF;
+    transition: all ease 0.3s;
+}
+
+.ws6 {
+    font-size: 8px;
+}
+
+.ws7 {
+    font-size: 9.3px;
+}
+
+.ws8 {
+    font-size: 11px;
+}
+
+.ws9 {
+    font-size: 12px;
+}
+
+.ws10 {
+    font-size: 13px;
+}
+
+.ws11 {
+    font-size: 15px;
+}
+
+.ws12 {
+    font-size: 16px;
+}
+
+.ws14 {
+    font-size: 19px;
+}
+
+.ws16 {
+    font-size: 21px;
+}
+
+.ws18 {
+    font-size: 24px;
+}
+
+.ws20 {
+    font-size: 27px;
+}
+
+.ws22 {
+    font-size: 29px;
+}
+
+.ws24 {
+    font-size: 32px;
+}
+
+.ws26 {
+    font-size: 35px;
+}
+
+.ws28 {
+    font-size: 37px;
+}
+
+.ws36 {
+    font-size: 48px;
+}
+
+.ws48 {
+    font-size: 64px;
+}
+
+.ws72 {
+    font-size: 96px;
+}
+
+.wpmd {
+    font-size: 13px;
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-style: normal;
+    font-weight: normal;
+}
+
+
+/*------------------responsive for phone-------------*/
+
+.welcomemsg {
+    font-style: italic;
+    font-weight: bolder;
+    font-size: 37px;
+    color: #4A274F;
+    margin: 10px;
+    padding-top: 20px;
+}
+
+.welcomelogin {
+    margin-top: 15px;
+    padding-top: 20px;
+}
+
+.footer p {
+    color: #fff
+}
+
+.footer {
+    margin: 1%;
+}
+
+.indexmain {
+    margin-top: 100px;
+}
+
+.slideshow-container img {
+    width: 100%;
+    height: 150px;
+}
+
+.slideshow-container {
+    max-width: 100%;
+    position: relative;
+    margin: 10px;
+}
+
+
+/* Hide the images by default */
+
+.mySlides {
+    display: none;
+}
+
+
+/* Style the slide index */
+
+.slide-index {
+    text-align: center;
+}
+
+.dot {
+    height: 0px;
+    width: 0px;
+    margin: 0 0px;
+    background-color: #ffff;
+    border-radius: 0%;
+    display: inline-block;
+    transition: background-color 0.6s ease;
+    cursor: pointer;
+}
+
+.active {
+    background-color: inherit;
+}
+
+.indexmain {
+    margin: 0px;
+}
+
+.attenlogin h2 {
+    color: #fff;
+    margin-left: 25px;
+}
+
+.attenlogin table {
+    margin: 25px;
+}
+
+.attenlogin td {
+    padding: 10px;
+    width: 150px;
+}
+
+.attenlogin button {
+    height: 32px;
+}
+
+.movietype .box {
+    width: 180px;
+    height: 240px;
+    border-radius: 25px;
+    background-color: #7e1e26;
+    box-shadow: 2px 10px 12px rgba(0, 0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /*justify-content:space-between;*/
+    box-sizing: border-box;
+    margin: 1px 1px;
+}
+
+.movietype .model {
+    width: 180px;
+    height: 240px;
+    border-radius: 20px;
+}
+
+.movietype .details {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+}
+
+.movietype .details p {
+    font-family: calibri;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.movietype .marvel {
+    color: #32323e;
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-family: bebas kai;
+    font-size: 25px;
+}
+
+.movietype .container1 {
+    width: 100%;
+    height: 60vh;
+    /*background-color:#c3456a;*/
+    background-color: #4A274F;
+    ;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px 0px;
+}
+
+.movietype .container2 {
+    width: 100%;
+    height: 60vh;
+    /*background-color:#c3456a;*/
+    background-color: #4A274F;
+    ;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px 0px;
+}
+
+.movietype .container3 {
+    width: 100%;
+    height: 60vh;
+    /*background-color:#c3456a;*/
+    background-color: #4A274F;
+    ;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0px 0px;
+}
+
+.movietype .heading {
+    color: #F0A07C;
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-family: bebas kai;
+    font-size: 25px;
+    margin: 20px 35px;
+}
+
+.movietype .logo {
+    height: 20px;
+}
+
+.movietype .box:hover {
+    background-color: #17171d;
+    transform-style: preserve-3d;
+    transform: scale(1.02);
+    transition: all ease 0.3s;
+}
+
+.movietype .box:hover .marvel {
+    background-color: #c0292b;
+    transition: all ease 0.3s;
+}
+
+.movietype .moviealignemt {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.movietype .moviecontent {
+    color: #FFFF00;
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-family: arvo;
+    font-size: 12px;
+    position: absolute;
+}
+
+.movietype {
+    margin: 1%;
+}
+
+.videoplayer {
+    margin: 5%;
+}
+
+.videoplayer h1 {
+    color: white;
+}
+
+#video-list {
+    max-height: 480px;
+    overflow-y: scroll;
+    margin-top: 10px;
+    padding: 10px;
+    max-width: 100%
+}
+
+#video-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+#video-list::-webkit-scrollbar-thumb {
+    background-color: black;
+    border-radius: 5px;
+    margin: 5px;
+    /* Add margin around the scrollbar thumb */
+    padding: 5px;
+    /* Add padding to the scrollbar thumb */
+}
+
+#video-list::-webkit-scrollbar-track {
+    background-color: #f1f1f1;
+    /* Set the color of the track */
+    border-radius: 5px;
+    /* Round the corners of the track */
+    border: 1px solid #ccc;
+    padding: 10px !important;
+    /* Add padding to the track */
+    margin-left: 10px !important;
+    /* Add margin to the left side of the track */
+    margin-right: 10px !important;
+    /* Add margin to th right side of the track */
+    padding-left: 10px;
+    /* Add padding to the top of the track */
+    padding-right: 10px;
+    /* Add padding to the bottom of the track */
+}
+
+#video-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#video-list li {
+    cursor: pointer;
+    /* margin-bottom: 5px; */
+    /* text-align: left; */
+    /* margin-left: 30px; */
+}
+
+.tourist {
+    margin: 1%;
+}
+
+
+/* Use a media query to add a break point at 800px: */
+
+table {
+    padding-bottom: 25px;
+    border: 1 px solid black;
+}
+
+.playlist-item.active {
+    font-weight: bold;
+    font-size: 22px;
+}
+
+.attenstatus table {
+    border-spacing: 0;
+    border: 1px solid black;
+    width: 95%;
+    overflow-x: auto;
+    margin: 1%
+}
+
+.attenstatus table,
+th,
+td {
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.attenstatus th {
+    border: 1px solid black;
+    color: #fff;
+}
+
+.attenstatus td {
+    border: 1px solid black;
+}
+
+.sorting {
+    font-weight: bold;
+}
+
+.existingsrrequest table {
+    border-spacing: 0;
+    border: 1px solid black;
+    width: 95%;
+    overflow-x: auto;
+    margin: 1%
+}
+
+.existingsrrequest table,
+th,
+td {
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.existingsrrequest th {
+    border: 1px solid black;
+    color: #fff;
+}
+
+.existingsrrequest td {
+    border: 1px solid black;
+}
+
+.journey {
+    margin-top: 50px;
+}
+
+.journey table {
+    border: 1px solid black;
+    width: 80%;
+    margin-left: 50px;
+}
+
+.journey td {
+    border: none;
+    text-align: left;
+    padding: 8px;
+}
+
+.circle {
+    height: 80px;
+    width: 80px;
+    background-color: green;
+    border-radius: 35%;
+    margin-left: 140px;
+    display: inline-block;
+    font-size: 14px;
+    padding-top: 20px;
+    color: white;
+    text-align: center;
+}
+
+.text {
+    margin-left: 120px;
+    margin-top: -35px;
+}
+
+.welcome button {
+    margin-left: 0px;
+}
+
+.addwithtext {
+    display: flex;
+    align-items: center;
+    border: 2mm solid black;
+}
+
+.imageslide {
+    width: 50px;
+    /* Adjust the width of the image as needed */
+    height: auto;
+    /* Maintain aspect ratio */
+    margin-right: 0px;
+    /* Adjust spacing between image and text */
+}
