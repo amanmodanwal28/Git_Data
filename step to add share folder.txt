@@ -1,0 +1,139 @@
+1.Go to the settings of your Ubuntu virtual machine in VirtualBox:
+* Select Settings.
+* Go to Shared Folders.
+* Click on the folder icon with a plus sign (add a new        shared folder).
+2. Configure the shared folder:
+*. Folder Path: Select the folder on your host machine that you want to share.
+*. Folder Name: This will be the name used to access the shared folder in the virtual machine. name = Vbox_SharedFolder
+*. Check the boxes for Auto-mount and Make Permanent if desired.  and    in mount point  write  ~/working
+*. Click OK to save.
+
+
+
+//  these command run for add shared folder 
+//////////////////////////////////////////
+sudo ./VBoxLinuxAdditions.run
+sudo apt-get update 
+sudo apt-get upgrade 
+mkdir working
+sudo gedit /etc/bash.bashrc
+//////////////////////////////////////////
+// when file open  then   add  ///
+//////////////////////////////////////////
+sudo mount -t vboxsf Vbox_SharedFolder working
+//////////////////////////////////////////
+sync
+
+//  Reboot the VM to apply the changes:
+cd working
+
+
+///////////////////////////////////////
+// check add data show or not        //
+///////////////////////////////////////
+
+// // //if  not work then do this 
+ 
+
+
+Step 1: Install VirtualBox Guest Additions
+
+1. Start your Ubuntu VM.
+2. Install the necessary build tools
+/////////////////////////////////////////
+sudo apt update
+sudo apt install build-essential dkms linux-headers-$(uname -r)
+/////////////////////////////////////////
+
+3. Insert the Guest Additions CD image:
+
+In VirtualBox, go to Devices > Insert Guest Additions CD image...
+
+4. Mount the CD:
+//////////////////////////////////////////
+sudo mkdir -p /media/cdrom
+sudo mount /dev/cdrom /media/cdrom
+//////////////////////////////////////////
+
+5. Run the Guest Additions installer
+//////////////////////////////////////////
+cd /media/cdrom
+sudo ./VBoxLinuxAdditions.run
+//////////////////////////////////////////
+6. and the  reboot
+
+
+Step 2: Mount the Shared Folder in Ubuntu
+
+1. Create a mount point
+//////////////////////////////////////////
+sudo mkdir -p /mnt/working
+//////////////////////////////////////////
+
+2. Mount the shared folder:
+//////////////////////////////////////////
+sudo mount -t vboxsf Vbox_SharedFolder /mnt/working
+//////////////////////////////////////////
+
+3. To access the shared folder, navigate to:
+//////////////////////////////////////////
+cd /mnt/working
+ls
+//////////////////////////////////////////
+
+..Verify the Installation
+..After rebooting, you can verify if the Guest Additions are installed properly by checking the kernel modules:
+//////////////////////////////////////////
+lsmod | grep vbox
+//////////////////////////////////////////
+
+
+Step 3: Automate the Mounting Process
+
+
+
+1. Edit the /etc/fstab file
+//////////////////////////////////////////
+sudo gedit /etc/fstab
+//////////////////////////////////////////
+
+2. Add the following line:
+//////////////////////////////////////////
+Vbox_SharedFolder /mnt/working vboxsf uid=1000,gid=1000,defaults 0 0
+//////////////////////////////////////////
+..after that clsoe it..
+
+3. Create a symbolic link on your desktop (if not already done):
+//////////////////////////////////////////
+ln -s /mnt/working ~/Desktop/SharedFolder
+//////////////////////////////////////////
+
+4.Reboot your VM to verify the shared folder mounts automatically:
+//////////////////////////////////////////
+sudo reboot
+//////////////////////////////////////////
+
+
+
+
+///////////////////////////////
+rare case  
+
+
+///////////////////////////////////////////
+sudo mount -t vboxsf Vbox_SharedFolder /media/working/
+//////////////////////////////////
+in  this code   
+1. Vbox_SharedFolder  is a shared fodler name which you set   when you add directory path
+2. /media/working/  check if working folder not exist then  make use cmd 
+/////////////////////////////////
+sudo mkdir /media/working
+/////////////////////////////////
+and then reboot
+
+
+
+
+
+
+
