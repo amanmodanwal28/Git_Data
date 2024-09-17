@@ -1,7 +1,5 @@
 Here are the answers to the JavaScript and React questions you asked about:
 
-### JavaScript
-
 1. **Differences between Normal Functions and Arrow Functions**:
    - **Syntax**: Arrow functions have a shorter syntax: `() => {}`.
    - **`this` Binding**: Arrow functions don't have their own `this` context, instead, they inherit `this` from the surrounding code, while normal functions have their own `this`.
