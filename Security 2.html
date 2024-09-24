@@ -1,36 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  <!-- Prevents the browser from interpreting files as something else than declared by the content-type -->
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-
-  <!-- Prevents clickjacking by ensuring the content is not embedded in iframes from other domains -->
-  <meta http-equiv="X-Frame-Options" content="SAMEORIGIN">
-
-  <!-- Content Security Policy (CSP) helps prevent cross-site scripting (XSS) attacks -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
-
-  <!-- Referrer Policy controls the amount of referrer information sent along with requests -->
-  <meta name="referrer" content="no-referrer">
-
-  <!-- Disallow search engines from indexing this page (optional, if needed) -->
-  <meta name="robots" content="noindex, nofollow">
-
-  <!-- Disables the browser's ability to infer the MIME type from file content -->
-  <meta http-equiv="X-Download-Options" content="noopen">
-
-  <!-- Sets the cross-origin resource sharing (CORS) policy -->
-  <meta http-equiv="Access-Control-Allow-Origin" content="self">
-  
-  <!-- HTTP Strict Transport Security (HSTS): Ensure HTTPS is enforced (set via server headers) -->
-  <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">
-
-  <title>Secure Web Page</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Prevents the browser from interpreting files as something else than declared by the content-type -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <!-- Content Security Policy (CSP) helps prevent cross-site scripting (XSS) attacks -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';">
+    <!-- Referrer Policy controls the amount of referrer information sent along with requests -->
+    <meta name="referrer" content="no-referrer">
+    <!-- Disallow search engines from indexing this page (optional, if needed) -->
+    <meta name="robots" content="noindex, nofollow">
+    <!-- Disables the browser's ability to infer the MIME type from file content -->
+    <meta http-equiv="X-Download-Options" content="noopen">
+    <!-- Sets the cross-origin resource sharing (CORS) policy -->
+    <meta http-equiv="Access-Control-Allow-Origin" content="self">
+    <!-- HTTP Strict Transport Security (HSTS): Ensure HTTPS is enforced (set via server headers) -->
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains">>
+    <!-- Prevent Clickjacking -->
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <!-- Setting Strict Transport Security (HSTS) -->
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000; includeSubDomains; preload">
+    <!-- Enforce Same-Origin Policy for Scripts -->
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <title>Secure Web Page</title>
 </head>
+
 <body>
-  <h1>Welcome to the Secure Web Page</h1>
+    <h1>Welcome to the Secure Web Page</h1>
 </body>
+
 </html>

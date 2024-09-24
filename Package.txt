@@ -1,1 +1,0 @@
-yarn global add nodemon express bootstrap mongoose http-server mkdirp electron react-bootstrap path fs dotenv body-parser cors concurrently nodemailer webpack webpack-cli eslint pm2 jsonwebtoken prettier axios chalk rimraf
