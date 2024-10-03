@@ -1,0 +1,16 @@
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #F5F5F5; /* Blue background color */
+  overflow-x: hidden;
+}
+
+
+a {
+  color: inherit;
+  text-decoration: none;
+  cursor:default;
+}

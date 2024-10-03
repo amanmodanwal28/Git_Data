@@ -1,0 +1,27 @@
+.marquee {
+
+    overflow: hidden;
+    margin: 20px 0 0 0; 
+    white-space: nowrap;
+    width: 100vw; /* Full width of the viewport */
+    height: 55px; /* Set a height to match the banner */
+    background-color: #007BFF; /* Optional: Background color */
+  }
+  
+  .marquee-contentMain{
+    display: inline-block;
+    animation: marquee 10s linear infinite; /* Adjust duration as needed */
+    font-size: 37px; /* Adjust font size as needed */
+    margin: 0;
+    color: #FFFFFF ; /* Remove default margin */
+  }
+  
+  @keyframes marquee {
+    0% {
+      transform: translateX(170%); /* Start from the right */
+    }
+    100% {
+      transform: translateX(-100%); /* End at the left */
+    }
+  }
+  

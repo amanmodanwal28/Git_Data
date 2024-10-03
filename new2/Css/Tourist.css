@@ -1,0 +1,109 @@
+/* Tourist Page Styling */
+.tourist-heading {
+  text-align: center;
+  margin: 20px 0;
+  font-size: 2.5rem;
+  color: #333;
+  font-weight: bold;
+}
+
+.tourist-container {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  padding: 20px;
+  align-items: center;
+}
+
+.place-item {
+  display: flex;
+  flex-direction: row; /* Items are in a row */
+  align-items: center;
+  flex-wrap: wrap; /* Allow wrapping for smaller screens */
+  cursor : pointer;
+}
+
+.DataTouristInfo {
+  display: flex;
+  flex-direction: row; /* Allow row layout */
+  align-items: center; /* Center items vertically */
+  width: 100%; /* Ensure full width */
+}
+
+.place-image {
+  width: 100%; /* Set width to 100% for responsiveness */
+  max-width: 300px; /* Max width for larger screens */
+  height: auto;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  
+}
+
+.place-image:hover {
+  transform: scale(1.05);
+  opacity: 0.9;
+}
+
+.place-content {
+  flex: 1;
+  padding: 10px;
+  text-align: justify; /* Justify text to align both left and right */
+  text-align-last: left; /* Align last line to the left */ /* Set line height for better readability */
+  overflow: hidden;
+  
+  
+  
+}
+
+.place-title {
+  font-size: 1.8rem; /* Title size increased */
+  margin-bottom: 10px;
+  color: #333;
+  text-align: center;
+  text-decoration: underline;
+}
+
+.place-description {
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.5;
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) {
+  .place-item {
+    flex-direction: column; /* Stack items on small screens */
+    align-items: center; /* Center items */
+  }
+
+  .DataTouristInfo {
+    flex-direction: column; /* Stack image and content */
+    align-items: center; /* Center items */
+  }
+
+  .place-image {
+    width: 70%; /* Use more width on smaller screens */
+    max-width: none; /* Remove max width */
+  }
+
+  .place-content {
+    text-align: center; /* Center text for small screens */
+    text-align: justify; /* Justify text to align both left and right */
+  text-align-last: left; /* Align last line to the left */
+  line-height: 1.5; /* Set line height for better readability */
+  overflow: hidden;
+  width : 75%;
+
+  }
+
+  .place-content > p {
+    margin-top: 0; /* Ensure no top margin for paragraph */
+    margin-bottom: 0; /* Remove bottom margin to prevent space */
+  }
+
+  /* Reverse the order for odd items */
+  .place-item:nth-child(even) .DataTouristInfo {
+    flex-direction: column-reverse; /* Image below text */
+  }
+}

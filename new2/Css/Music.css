@@ -1,0 +1,66 @@
+.music-container {
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.category-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.category-box {
+  padding: 10px 20px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.category-box.selected {
+  background-color: #6200ea;
+  color: white;
+}
+.file-list {
+  list-style-type: none;
+  padding: 0 0 30px; /* Added bottom padding */
+  margin: 0;
+  height: calc(100% - 180px); /* Adjust height to account for header and controls */
+  overflow-y: auto; /* Enable scrolling if needed */
+}
+
+.audio-controls {
+  background-color: teal;
+  padding: 8px;
+  text-align: center;
+  border-top: 1px solid #ddd;
+  /* Add some margin on top */
+}
+
+.file-list li {
+  padding: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.file-list li:hover,
+.file-list li.highlight {
+  background-color: #d0d0d0;
+}
+
+.current-song {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: #65e1f1;
+  border-radius: 5px;
+}
+.highlight {
+  background-color: rgb(88, 88, 224); /* Light blue background */
+  font-weight: bold; /* Bold text */
+}
+.file-list::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome, Safari and Opera */
+}
