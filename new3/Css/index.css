@@ -1,0 +1,31 @@
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column; /* Stack children vertically */
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: #F5F5F5; /* Light gray background color */
+  overflow-x: hidden;
+
+  /* Prevent text selection */
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Opera, and Edge */
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  cursor: default;
+}
+
+/* Prevent dragging of images */
+img {
+  pointer-events: none; /* Prevent dragging images */
+}
+
+/* Prevent selecting any text inside specific elements, if needed */
+* {
+  user-select: none; /* Prevent text selection for all elements */
+}
