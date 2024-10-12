@@ -4,7 +4,7 @@ const dgram = require('dgram')
 const udpSocket = dgram.createSocket('udp4')
 
 const PORT = 8001
-const HOST = '127.0.0.1' // Loopback IP for sender
+const HOST = '192.168.31.187' // Loopback IP for sender
 
 let count = 1 // Initialize a count variable
 let count_open = 1 // Initialize a count variable
@@ -49,7 +49,7 @@ const closeConnection = () => {
 }
 
 // Send a message every second
-const messageInterval = setInterval(sendMessage, 1000) // Send the message every second
+const messageInterval = setInterval(sendMessage, 3000) // Send the message every second
 
 // Close connection every 35 seconds
 setInterval(closeConnection, 35000) // Close connection every 35 seconds
