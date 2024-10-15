@@ -1,4 +1,5 @@
 aa.txt
 ab.txt
 abc.txt
-aman
+man
+amans
